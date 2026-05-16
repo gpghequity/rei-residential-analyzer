@@ -322,8 +322,25 @@ export default function CommercialTab(_props) {
       </div>
 
       {/* ── Output ────────────────────── */}
-      {results && (
+      {results && (() => {
+        const mixedCheck = detectMixedUse({
+          subclass: inputs.subclass,
+          tenants: results.income?.tenants || [],
+          additionalAssets: []
+        })
+        return (
         <>
+          {mixedCheck.isMixedUse && (
+            <div style={{ background: '#eff6ff', border: '2px solid #2563eb', borderRadius: 6, padding: 12, marginBottom: 14 }}>
+              <strong style={{ color: '#1e3a8a', display: 'block', marginBottom: 6 }}>⊕ Looks like a mixed-use property</strong>
+              <div style={{ fontSize: 13, color: '#1e3a8a' }}>
+                Detected: <em>{mixedCheck.reason}</em>. Single-class commercial math may understate value when retail / office / residential / storage are blended.
+                <br/>
+                <a href="https://rei-mixed-use-production.up.railway.app/" target="_blank" rel="noopener" style={{ color: '#1d4ed8', fontWeight: 700 }}>Open Mixed-Use Blend Tool →</a>
+                <span style={{ color: '#475569', marginLeft: 8 }}>for combined per-asset valuation</span>
+              </div>
+            </div>
+          )}
           {results.warnings.length > 0 && (
             <div style={{ background: '#fff8e6', border: '2px solid #C9A84C', borderRadius: 6, padding: 12, marginBottom: 14 }}>
               <strong style={{ color: '#1a2456', display: 'block', marginBottom: 6 }}>Warnings ({results.warnings.length})</strong>
@@ -404,7 +421,8 @@ export default function CommercialTab(_props) {
             </div>
           </fieldset>
         </>
-      )}
+        )
+      })()}
     </section>
   )
 }
