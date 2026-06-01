@@ -19,8 +19,14 @@ const upload = multer({ storage: multer.memoryStorage(), limits: { fileSize: 50 
 
 app.use(express.json({ limit: '8mb' }));
 
-// Serve the built SPA.
-app.use(express.static(join(__dirname, 'dist')));
+// Serve the built SPA. Hashed JS/CSS can cache forever (their names change on
+// every build); index.html must NOT be cached or users keep running an old
+// bundle after a deploy.
+app.use(express.static(join(__dirname, 'dist'), {
+  setHeaders: (res, path) => {
+    if (path.endsWith('.html')) res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+  }
+}));
 
 // ── Math (frozen bible-math endpoint, reused by the workspace) ──
 app.post('/api/calc', (req, res) => calcHandler(req, res));
@@ -51,8 +57,9 @@ app.get('/healthz', (req, res) => {
   });
 });
 
-// SPA fallback.
+// SPA fallback — never cache the entry document.
 app.get('*', (req, res) => {
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
   res.sendFile(join(__dirname, 'dist', 'index.html'));
 });
 

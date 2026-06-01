@@ -115,6 +115,7 @@ export default function AnalyzeDealTab() {
   const [docs, setDocs] = useState([])
   const [photos, setPhotos] = useState([])
   const [phase, setPhase] = useState('idle')
+  const [step, setStep] = useState('')
   const [error, setError] = useState(null)
   const [result, setResult] = useState(null)
 
@@ -135,6 +136,11 @@ export default function AnalyzeDealTab() {
         propertyType: typeId, address: fields.address, city: fields.city, state: fields.state, zip: fields.zip,
         beds: fields.beds, baths: fields.baths, sqft: fields.sqft, dealType: mode
       }))
+      const work = []
+      if (docs.length) work.push(`extracting ${docs.length} document(s)`)
+      if (photos.length) work.push(`analyzing ${photos.length} photo(s)`)
+      work.push('pulling comps')
+      setStep(`Working: ${work.join(', ')}… this can take 20–60s for documents/photos (AI reading).`)
       const orch = await postForJson('/api/analyze-deal', { method: 'POST', body: fd }, 'Analyze')
 
       const extractedNorm = pullExtracted(orch.extracted)
@@ -148,6 +154,7 @@ export default function AnalyzeDealTab() {
       }
       const calcPayload = type.buildCalc ? type.buildCalc(calcFields, mode) : null
 
+      setStep('Running Math Bible analysis…')
       let calc = null, head = {}, calcTypeUsed = null
       if (calcPayload) {
         const first = await runCalc({ type: calcPayload.type, inputs: calcPayload.inputs })
@@ -203,6 +210,7 @@ export default function AnalyzeDealTab() {
       }
       setResult(report)
       setPhase('done')
+      setStep('')
 
       // 7) Persist report + write the shared Properties row.
       const sheet = {
@@ -231,6 +239,7 @@ export default function AnalyzeDealTab() {
     } catch (e) {
       setError(e.message || 'Analysis failed')
       setPhase('idle')
+      setStep('')
     }
   }
 
@@ -288,11 +297,22 @@ export default function AnalyzeDealTab() {
       </div>
 
       <div className="no-print" style={{ marginBottom: 16 }}>
+        <style>{`@keyframes baspin{to{transform:rotate(360deg)}}`}</style>
         <button type="button" onClick={analyze} disabled={phase === 'running'}
-          style={{ padding: '12px 28px', fontSize: 16, fontWeight: 700, borderRadius: 8, border: 'none', cursor: phase === 'running' ? 'wait' : 'pointer', background: '#0A0F2C', color: '#C9A84C' }}>
-          {phase === 'running' ? 'Analyzing… (extracting, reviewing photos, pulling comps)' : 'Analyze Deal'}
+          style={{ padding: '12px 28px', fontSize: 16, fontWeight: 700, borderRadius: 8, border: 'none', cursor: phase === 'running' ? 'wait' : 'pointer', background: phase === 'running' ? '#1E2A45' : '#0A0F2C', color: '#C9A84C', opacity: phase === 'running' ? 0.85 : 1 }}>
+          {phase === 'running' ? 'Analyzing…' : 'Analyze Deal'}
         </button>
-        {error && <p style={{ color: '#B23030', fontWeight: 600 }}>{error}</p>}
+        {phase === 'running' && (
+          <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginTop: 12, padding: '12px 16px', background: '#fff7e6', border: '1px solid #C8851A', borderRadius: 8 }}>
+            <span style={{ width: 22, height: 22, border: '3px solid #d8bd6e', borderTopColor: '#0A0F2C', borderRadius: '50%', display: 'inline-block', animation: 'baspin 0.8s linear infinite', flex: '0 0 auto' }} />
+            <span style={{ fontWeight: 600, color: '#0A0F2C' }}>{step || 'Working…'}</span>
+          </div>
+        )}
+        {error && (
+          <div style={{ marginTop: 12, padding: '12px 16px', background: '#fdeaea', border: '1px solid #B23030', borderRadius: 8 }}>
+            <b style={{ color: '#B23030' }}>Could not complete:</b> <span>{error}</span>
+          </div>
+        )}
       </div>
 
       {result && <Results r={result} />}
