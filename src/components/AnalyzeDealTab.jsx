@@ -30,13 +30,33 @@ function pullExtracted(extracted) {
   return out
 }
 
+// Robust POST that never crashes on a non-JSON response (e.g. a Railway
+// "page could not be found" page during a redeploy, a 413, or a gateway
+// timeout). Surfaces the real status + a readable snippet instead.
+async function postForJson(url, opts, label) {
+  let resp
+  try {
+    resp = await fetch(url, opts)
+  } catch (e) {
+    throw new Error(`${label}: network error (${e.message}). Check your connection and try again.`)
+  }
+  const text = await resp.text()
+  let data
+  try { data = JSON.parse(text) } catch {
+    const hint = resp.status === 404
+      ? ' — the app may be restarting/redeploying; wait ~30s and try again.'
+      : (resp.status === 413 ? ' — uploaded files are too large.' : (resp.status >= 500 ? ' — server/extractor error or timeout; try again or with fewer files.' : ''))
+    throw new Error(`${label} failed (HTTP ${resp.status})${hint}`)
+  }
+  if (!resp.ok) throw new Error(`${label} failed (HTTP ${resp.status}): ${data.error || 'unknown error'}`)
+  return data
+}
+
 // Call the frozen bible-math endpoint.
 async function runCalc(payload) {
-  const resp = await fetch('/api/calc', {
+  return postForJson('/api/calc', {
     method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload)
-  })
-  if (!resp.ok) throw new Error('calc ' + resp.status)
-  return resp.json()
+  }, 'Calculation')
 }
 
 // Normalize a calc result into headline figures used by the recommendation.
@@ -115,8 +135,7 @@ export default function AnalyzeDealTab() {
         propertyType: typeId, address: fields.address, city: fields.city, state: fields.state, zip: fields.zip,
         beds: fields.beds, baths: fields.baths, sqft: fields.sqft, dealType: mode
       }))
-      const orchResp = await fetch('/api/analyze-deal', { method: 'POST', body: fd })
-      const orch = await orchResp.json()
+      const orch = await postForJson('/api/analyze-deal', { method: 'POST', body: fd }, 'Analyze')
 
       const extractedNorm = pullExtracted(orch.extracted)
 
@@ -197,16 +216,18 @@ export default function AnalyzeDealTab() {
         recommended_offer_basis: rec.basis,
         one_line_summary: `${type.label} — ${rec.verdict}`
       }
-      fetch('/api/save-report', {
+      postForJson('/api/save-report', {
         method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           folderId: orch.folderId, address: fields.address, propertyType: typeId,
           sheet, analysis: report, reportHtml: buildReportHtml(report),
           user: fields.user || '', contact: fields.contact || ''
         })
-      }).then(r => r.json()).then(s => {
+      }, 'Save').then(s => {
         setResult(prev => prev ? { ...prev, saved: s.ok, savePersistError: s.persistError, driveUrl: s.driveUrl || prev.driveUrl } : prev)
-      }).catch(() => {})
+      }).catch(err => {
+        setResult(prev => prev ? { ...prev, saved: false, savePersistError: err.message } : prev)
+      })
     } catch (e) {
       setError(e.message || 'Analysis failed')
       setPhase('idle')
