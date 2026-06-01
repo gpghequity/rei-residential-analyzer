@@ -1,4 +1,5 @@
 import { useState, useEffect } from 'react'
+import AnalyzeDealTab from './components/AnalyzeDealTab.jsx'
 import QuickAnalysisTab from './components/QuickAnalysisTab.jsx'
 import StorageTab from './components/StorageTab.jsx'
 import ResidentialTab from './components/ResidentialTab.jsx'
@@ -8,6 +9,7 @@ import MixedUseTab from './components/MixedUseTab.jsx'
 import { parseSearchString } from './connectors/urlParams.js'
 
 const TABS = [
+  { id: 'analyze', label: 'Analyze a Deal', component: AnalyzeDealTab },
   { id: 'quick', label: 'Quick Analysis', component: QuickAnalysisTab },
   { id: 'storage', label: 'Storage', component: StorageTab },
   { id: 'residential', label: 'Residential', component: ResidentialTab },
@@ -25,7 +27,7 @@ const initialUrlState = typeof window !== 'undefined'
   : { tab: null, storage: {}, residential: {} }
 
 export default function App() {
-  const [activeTab, setActiveTab] = useState(initialUrlState.tab || 'storage')
+  const [activeTab, setActiveTab] = useState(initialUrlState.tab || 'analyze')
 
   // Keep document title in sync with the active tab — helps when operator
   // has the page open alongside Fast Calc / Rehab Calc tabs.

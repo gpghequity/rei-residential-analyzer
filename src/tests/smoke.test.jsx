@@ -10,8 +10,9 @@ describe('App skeleton', () => {
     expect(screen.getByText(/Operator-grade pre-LOI deal analysis/i)).toBeInTheDocument()
   })
 
-  it('renders all five tab buttons including Mixed Use', () => {
+  it('renders all tab buttons including Analyze a Deal and Mixed Use', () => {
     render(<App />)
+    expect(screen.getByRole('button', { name: 'Analyze a Deal' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Storage' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'Residential' })).toBeInTheDocument()
     expect(screen.getByRole('button', { name: 'MHP' })).toBeInTheDocument()
@@ -19,8 +20,16 @@ describe('App skeleton', () => {
     expect(screen.getByRole('button', { name: 'Mixed Use' })).toBeInTheDocument()
   })
 
-  it('shows Storage tab content by default', () => {
+  it('shows the Analyze a Deal workspace by default', () => {
     render(<App />)
+    expect(screen.getByRole('heading', { name: /Property Type/i })).toBeInTheDocument()
+    expect(screen.getByRole('heading', { name: /Upload Documents & Photos/i })).toBeInTheDocument()
+  })
+
+  it('switches to Storage when clicked', async () => {
+    const user = userEvent.setup()
+    render(<App />)
+    await user.click(screen.getByRole('button', { name: 'Storage' }))
     expect(screen.getByRole('heading', { name: 'Storage' })).toBeInTheDocument()
   })
 
