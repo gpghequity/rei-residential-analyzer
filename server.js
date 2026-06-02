@@ -9,6 +9,7 @@ import sheetDataHandler from './api/sheetData.js';
 import { extractDocs, extractPhotos } from './api/extract.js';
 import { enrich } from './api/enrich.js';
 import { analyzeDeal, saveReport } from './api/analyzeDeal.js';
+import { qaSelfCheck } from './api/qaSelfCheck.js';
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -46,6 +47,9 @@ app.post('/api/save-report', (req, res) => saveReport(req, res));
 app.post('/api/save-analysis', (req, res) => saveAnalysisHandler(req, res));
 app.get('/api/load-analysis', (req, res) => loadAnalysisHandler(req, res));
 app.get('/api/sheet-data', (req, res) => sheetDataHandler(req, res));
+
+// ── QA read-only persistence diagnostic (Drive + Properties sheet reachability) ──
+app.get('/api/qa-selfcheck', (req, res) => qaSelfCheck(req, res));
 
 // ── Health ──
 app.get('/healthz', (req, res) => {

@@ -136,4 +136,33 @@
 
 ### Verification
 - `npx vitest run` → **233 passed (10 files)** incl. new routing/LTV gate. `npx vite build` → clean.
-- Bible doc unchanged — it was already 75/25; the CODE now matches it. Still local-only.
+- Bible doc unchanged — it was already 75/25; the CODE now matches it.
+- **DEPLOYED — LIVE v0.6.0** at https://rei-baby-analyzer-production.up.railway.app (Railway). Smoke test passed.
+
+---
+
+## Date: 2026-06-01 (v0.6.1 — QA Test Harness)
+## Task: repeatable operator QA system; no new math, no Bible/routing changes.
+
+- **QA Runner tab** (`src/components/QaTab.jsx`, also deep-link `?tab=qa`): runs frozen
+  golden deals through the REAL engines, shows PASS/FAIL + expected/actual/diff/tolerance/
+  formula/Math-Bible-section per check.
+- **`src/qa/fixtures.js`** — golden expected values per asset class (computed once from the
+  real engines, frozen → drift detection).
+- **`src/qa/runner.js`** — runMatrix/runCalc/runLand + storage capital-stack invariants
+  (bank=75%, equity=25%, borrower+seller=equity, 8% borrower-only, 5% seller-only, DSCR
+  bank-only, pocket = NOI − all obligations) + MF routing proof + land no-fake-offer guards.
+- **Extractor diagnostics panel** — shows detected address/type/gross/expenses/NOI/asking/
+  units/sqft/confidence + raw payload; empty → "Extractor returned no usable financial
+  data." (never "not implemented").
+- **Acceptance checklist** per fixture + **downloadable/printable QA Report** (date, version,
+  bundle hash, live URL, pass/fail, failures, formulas).
+- **Deploy guardrail** `src/tests/qa.test.js` + render smoke tests for QA + Land tabs.
+- Shared `src/version.js` (v0.6.1).
+
+### Verification (all deploy guardrails met)
+- `npx vitest run` → **240 passed (11 files)**. `npx vite build` → clean (46 modules).
+- Guardrails: tests pass ✓ · build ✓ · QA runner loads ✓ · ≥1 fixture/asset class ✓ ·
+  storage capital-stack ✓ · MF routing ✓ · land no-fake-offer ✓.
+- **DEPLOYED — LIVE v0.6.1** at https://rei-baby-analyzer-production.up.railway.app.
+  Live smoke: QA strings present; live /api/calc MF1-19 = $1,503,000 (matches fixture).

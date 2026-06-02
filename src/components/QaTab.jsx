@@ -64,7 +64,7 @@ function ChecksTable({ checks }) {
 }
 
 // Report Acceptance Checklist (#8) — auto-derived from the engine output.
-function AcceptanceChecklist({ r }) {
+function AcceptanceChecklist({ r, persistence }) {
   const d = r.display
   const has = (v) => v !== null && v !== undefined
   const na = (label) => ({ label, state: 'n/a' })
@@ -84,8 +84,8 @@ function AcceptanceChecklist({ r }) {
     has(d.seller) ? tick('Seller amount shown (applicable)', true) : na('Seller amount (not applicable)'),
     isLand || isFlip ? na('Pocket money shown') : tick('Pocket money shown', has(d.pocket)),
     tick('Raw extracted data separated from calculated', true),
-    na('Report saved to Drive (verified in a live Analyze/Land run)'),
-    na('Row written to Properties sheet (verified in a live run)')
+    persistence?.drive?.ok ? tick('Drive save reachable (live connectivity verified)', true) : na('Report saved to Drive (run Live Persistence Check)'),
+    persistence?.sheet?.ok ? tick('Properties sheet writable (live connectivity verified)', true) : na('Row written to Properties sheet (run Live Persistence Check)')
   ]
   const color = { ok: GREEN, miss: RED, 'n/a': '#6b7280' }
   const mark = { ok: '✓', miss: '✗', 'n/a': '—' }
@@ -99,7 +99,7 @@ function AcceptanceChecklist({ r }) {
   )
 }
 
-function FixtureCard({ r }) {
+function FixtureCard({ r, persistence }) {
   const d = r.display
   return (
     <div style={{ ...card, borderLeft: `6px solid ${r.pass ? GREEN : RED}` }}>
@@ -122,7 +122,44 @@ function FixtureCard({ r }) {
       </div>
       <div style={srcStyle}>Engine: {r.engine} · {r.bibleSection}</div>
       <ChecksTable checks={r.checks} />
-      <AcceptanceChecklist r={r} />
+      <AcceptanceChecklist r={r} persistence={persistence} />
+    </div>
+  )
+}
+
+// ── Live persistence check (read-only Drive + Properties sheet reachability) ──
+function PersistencePanel({ persistence, onRun, phase }) {
+  const ok = persistence?.ok
+  const Row = ({ k, v, good }) => (
+    <div style={{ borderBottom: '1px solid #eef1f7', padding: '3px 0', fontSize: 13 }}>
+      <span style={{ color: '#6b7280' }}>{k}: </span><b style={{ color: good == null ? NAVY : good ? GREEN : RED }}>{v}</b>
+    </div>
+  )
+  return (
+    <div style={{ ...card, borderLeft: `6px solid ${persistence ? (ok ? GREEN : RED) : GOLD}` }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <h3 style={{ ...h3, border: 'none', margin: 0 }}>Live Persistence Check <span style={srcStyle}>· read-only, writes nothing</span></h3>
+        {persistence && <Badge ok={ok} />}
+      </div>
+      <p style={srcStyle}>Confirms the service account can reach the Drive folder and the Properties sheet — without writing a test row into your deal log.</p>
+      <button type="button" onClick={onRun} disabled={phase === 'running'}
+        style={{ padding: '8px 16px', borderRadius: 6, border: 'none', background: NAVY, color: GOLD, cursor: phase === 'running' ? 'wait' : 'pointer', fontWeight: 600 }}>
+        {phase === 'running' ? 'Checking…' : 'Run Live Persistence Check'}
+      </button>
+      {persistence && (
+        <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 10 }}>
+          <div>
+            <Row k="Google configured" v={persistence.google_configured ? 'yes' : 'no'} good={persistence.google_configured} />
+            <Row k="Drive folder reachable" v={persistence.drive.ok ? 'YES' : `NO${persistence.drive.error ? ' — ' + persistence.drive.error : ''}`} good={persistence.drive.ok} />
+            <Row k="Drive parent folder" v={persistence.drive.parentFolderName || '—'} />
+          </div>
+          <div>
+            <Row k="Properties sheet readable" v={persistence.sheet.ok ? 'YES' : `NO${persistence.sheet.error ? ' — ' + persistence.sheet.error : ''}`} good={persistence.sheet.ok} />
+            <Row k="Sheet header columns" v={persistence.sheet.headerCols ?? '—'} />
+            <Row k="Properties spine intact" v={persistence.sheet.hasSpine ? 'yes' : 'no'} good={persistence.sheet.hasSpine} />
+          </div>
+        </div>
+      )}
     </div>
   )
 }
@@ -248,6 +285,8 @@ function buildReportHtml({ results, routing, land, stamp }) {
 // ── Main ────────────────────────────────────────────────────────────────────
 export default function QaTab() {
   const [state, setState] = useState({ phase: 'idle', results: null, routing: null, land: null, error: null, stamp: null })
+  const [persistence, setPersistence] = useState(null)
+  const [persPhase, setPersPhase] = useState('idle')
 
   async function runAll() {
     setState((s) => ({ ...s, phase: 'running', error: null }))
@@ -258,6 +297,18 @@ export default function QaTab() {
     } catch (e) {
       setState((s) => ({ ...s, phase: 'idle', error: e.message }))
     }
+  }
+
+  async function runPersistence() {
+    setPersPhase('running')
+    try {
+      const resp = await fetch('/api/qa-selfcheck')
+      const j = await resp.json().catch(() => null)
+      setPersistence(j || { ok: false, drive: { ok: false, error: 'no response' }, sheet: { ok: false } })
+    } catch (e) {
+      setPersistence({ ok: false, drive: { ok: false, error: e.message }, sheet: { ok: false } })
+    }
+    setPersPhase('done')
   }
 
   function exportReport() {
@@ -304,7 +355,9 @@ export default function QaTab() {
         </div>
       )}
 
-      {r && r.results.map((res) => <FixtureCard key={res.id} r={res} />)}
+      <PersistencePanel persistence={persistence} onRun={runPersistence} phase={persPhase} />
+
+      {r && r.results.map((res) => <FixtureCard key={res.id} r={res} persistence={persistence} />)}
 
       {state.routing && (
         <div style={{ ...card, borderLeft: `6px solid ${state.routing.pass ? GREEN : RED}` }}>

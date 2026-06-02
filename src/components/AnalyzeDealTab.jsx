@@ -281,6 +281,24 @@ export default function AnalyzeDealTab() {
 
       const extractedNorm = pullExtracted(orch.extracted)
 
+      // Surface a real extractor failure (e.g. doc-reader Claude key invalid → 401)
+      // instead of silently showing blank fields. This is the difference between
+      // "the document had nothing" and "the extractor service is down".
+      let extractorError = null
+      if (docs.length && (!extractedNorm)) {
+        const er = orch.extracted || {}
+        const inner = er.result || {}
+        const raw = inner.error || er.error || null
+        if (raw) {
+          const s = String(raw)
+          extractorError = /invalid x-api-key|authentication_error|401/i.test(s)
+            ? 'Document extractor is DOWN — the rei-doc-reader Anthropic API key is invalid (401). No documents can be read until that key is renewed. (This is a service issue, not your file.)'
+            : `Document extractor error: ${s.slice(0, 240)}`
+        } else if (er.configured === false) {
+          extractorError = 'Document extractor not configured on the server (REI_OPERATOR_PASSWORD).'
+        }
+      }
+
       // 2) Compute headline via existing bible math (/api/calc). Prefer user fields; fall back to extracted.
       const calcFields = { ...fields }
       if (extractedNorm) {
@@ -393,7 +411,7 @@ export default function AnalyzeDealTab() {
         isIncome: isIncomeAsset(typeId),
         implemented: type.implemented && hasMath,
         inputs: fields,
-        extracted: extractedNorm, extractedRaw: orch.extracted,
+        extracted: extractedNorm, extractedRaw: orch.extracted, extractorError,
         comps: orch.comps, photos: orch.photos, photoRes,
         calc, calcTypeUsed, headline: head, matrix, noiBasis,
         recommendation: rec,
@@ -626,6 +644,11 @@ function Results({ r }) {
       {/* DOCUMENT FINDINGS */}
       <div style={card}>
         <h3 style={h3}>Document Findings</h3>
+        {r.extractorError && (
+          <div style={{ marginBottom: 8, padding: '10px 14px', background: '#fdeaea', border: '1px solid #B23030', borderRadius: 6 }}>
+            <b style={{ color: '#B23030' }}>Extractor problem:</b> <span>{r.extractorError}</span>
+          </div>
+        )}
         {!r.extractedRaw ? <p style={srcStyle}>No documents uploaded.</p> : (
           <>
             <Val label="Extractor endpoint" value={r.extractedRaw.endpoint || '—'} source="rei-doc-reader" />
