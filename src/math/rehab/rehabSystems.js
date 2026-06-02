@@ -125,6 +125,35 @@ export const SYSTEMS_BY_MODE = {
   commercial: COMMERCIAL_SYSTEMS
 };
 
+// National-average rehab benchmark, $/sf by overall condition tier. Source:
+// rei-data-enrichment /api/rehab-benchmark (Remodeling Magazine + HomeAdvisor,
+// national median). This drives the "national averages" total shown beside
+// Steve's line-item engine total. mid-Atlantic regional ≈ national × 1.07.
+export const NATIONAL_PSF = { move_in: 8, light_rehab: 22, medium_rehab: 45, heavy_rehab: 80, studs: 130 };
+export const REGIONAL_ADJ = 1.07; // mid-Atlantic (PA)
+
+export const OVERALL_TIERS = [
+  { id: 'move_in', label: 'Move-in ready' },
+  { id: 'light_rehab', label: 'Light (cosmetic)' },
+  { id: 'medium_rehab', label: 'Medium (kitchen/bath + cosmetics)' },
+  { id: 'heavy_rehab', label: 'Heavy (multiple systems)' },
+  { id: 'studs', label: 'Down to studs / gut' }
+];
+
+// Map a per-system condition tier (or pic-rehab overall tier) to a benchmark tier.
+export function toBenchmarkTier(condition) {
+  switch (condition) {
+    case 'new': return 'move_in';
+    case 'modern': return 'light_rehab';
+    case 'semiModern': return 'medium_rehab';
+    case 'old': return 'heavy_rehab';
+    case 'missing': case 'drywallNeeded': case 'studdedOut': return 'studs';
+    // pic-rehab style overall tiers pass through if already benchmark-shaped:
+    case 'move_in': case 'light_rehab': case 'medium_rehab': case 'heavy_rehab': case 'studs': return condition;
+    default: return 'medium_rehab';
+  }
+}
+
 // Whether Baby has Steve's locked figures for this mode, or is using national
 // averages (commercial). Surfaced in the UI so the source is never ambiguous.
 export const RATE_SOURCE = {

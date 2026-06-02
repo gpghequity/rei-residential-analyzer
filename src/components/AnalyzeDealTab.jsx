@@ -13,6 +13,7 @@ import CommercialTab from './CommercialTab.jsx'
 import MixedUseTab from './MixedUseTab.jsx'
 import LandTab from './LandTab.jsx'
 import RehabSection from './analyze/RehabSection.jsx'
+import { NATIONAL_PSF, REGIONAL_ADJ, toBenchmarkTier } from '../math/rehab/rehabSystems.js'
 
 // Which types get the embedded condition→rehab calculator, and which Rehab Calc
 // system set they use. Residential rehab feeds the flip MAO.
@@ -342,7 +343,8 @@ export default function AnalyzeDealTab({ sharedUrlState, deepUrlState }) {
   const [typeId, setTypeId] = useState('residential')
   const [mode, setMode] = useState('flip')
   const [advancedOpen, setAdvancedOpen] = useState(false)
-  const [rehabCondition, setRehabCondition] = useState(0) // manual condition → rehab $
+  const [rehabCondition, setRehabCondition] = useState(0) // manual condition → rehab $ (your numbers)
+  const [rehabDetail, setRehabDetail] = useState(null)    // { national: {area, psf, tier, total}, ... }
   const [fields, setFields] = useState({ address: '', city: '', state: '', zip: '' })
   const [docs, setDocs] = useState([])
   const [photos, setPhotos] = useState([])
@@ -532,9 +534,14 @@ export default function AnalyzeDealTab({ sharedUrlState, deepUrlState }) {
         calc, calcTypeUsed, headline: head, matrix, noiBasis,
         recommendation: rec,
         brokerNOI, calcNOI, noiDelta,
-        // Two rehab totals: human/manual condition vs photo-read (pic-rehab).
-        rehabCondition: showRehab ? rehabCondition : null,
-        rehabPhoto: photoRes?.rehab_estimate_mid ?? null,
+        // Rehab grid: human/manual condition vs photo-read (pic-rehab), each priced
+        // your-numbers AND national-average.
+        rehabCondition: showRehab ? rehabCondition : null,           // human · your numbers
+        rehabConditionNational: showRehab ? (rehabDetail?.national?.total ?? null) : null, // human · national
+        rehabPhoto: photoRes?.rehab_estimate_mid ?? null,            // photo · pic-rehab (your-ish)
+        rehabPhotoNational: (showRehab && rehabDetail?.national?.area && photoRes?.overall_condition_tier)
+          ? Math.round(rehabDetail.national.area * (NATIONAL_PSF[toBenchmarkTier(photoRes.overall_condition_tier)] ?? 0) * REGIONAL_ADJ)
+          : null,
         rehabUsed: num(calcFields.rehab) || null,
         missing,
         driveUrl: orch.driveUrl,
@@ -629,7 +636,7 @@ export default function AnalyzeDealTab({ sharedUrlState, deepUrlState }) {
       {showRehab && (
         <div style={card} className="no-print">
           <h3 style={h3}>3 · Property Condition → Rehab Estimate</h3>
-          <RehabSection mode={rehabMode} seed={rehabSeed} onTotalChange={setRehabCondition} />
+          <RehabSection mode={rehabMode} seed={rehabSeed} onTotalChange={(total, detail) => { setRehabCondition(total); setRehabDetail(detail) }} />
         </div>
       )}
 
@@ -761,19 +768,36 @@ function Results({ r }) {
       </div>
       )}
 
-      {/* REHAB — two independent totals: manual condition vs photo-read */}
+      {/* REHAB — human vs photo, each priced your-numbers vs national-average */}
       {(r.rehabCondition != null || r.rehabPhoto != null) && (
         <div style={card}>
-          <h3 style={h3}>Rehab — Two Views</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
-            <Val label="Human / manual condition" value={money(r.rehabCondition)} source="Rehab Calc — your condition answers" />
-            <Val label="Photo-read condition" value={money(r.rehabPhoto)} source="Photo analyzer (pic-rehab)" />
+          <h3 style={h3}>Rehab — Human vs Photo · Your Numbers vs National Average</h3>
+          <div style={{ overflowX: 'auto' }}>
+            <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 420 }}>
+              <thead><tr>
+                {['Source', 'Your numbers', 'National average'].map((h, i) => (
+                  <th key={i} style={{ padding: '6px 10px', background: '#0A0F2C', color: '#fff', fontSize: 12, textAlign: i ? 'right' : 'left' }}>{h}</th>
+                ))}
+              </tr></thead>
+              <tbody>
+                <tr>
+                  <td style={{ padding: '6px 10px', fontWeight: 600, borderBottom: '1px solid #eef1f7' }}>Human (condition answers)</td>
+                  <td style={{ padding: '6px 10px', textAlign: 'right', borderBottom: '1px solid #eef1f7' }}>{money(r.rehabCondition)}</td>
+                  <td style={{ padding: '6px 10px', textAlign: 'right', borderBottom: '1px solid #eef1f7' }}>{r.rehabConditionNational != null ? money(r.rehabConditionNational) : '—'}</td>
+                </tr>
+                <tr style={{ background: '#f7f9fd' }}>
+                  <td style={{ padding: '6px 10px', fontWeight: 600 }}>Photo (pic-rehab read)</td>
+                  <td style={{ padding: '6px 10px', textAlign: 'right' }}>{r.rehabPhoto != null ? money(r.rehabPhoto) : '—'}</td>
+                  <td style={{ padding: '6px 10px', textAlign: 'right' }}>{r.rehabPhotoNational != null ? money(r.rehabPhotoNational) : '—'}</td>
+                </tr>
+              </tbody>
+            </table>
           </div>
           <p style={srcStyle}>
             {r.rehabUsed != null
-              ? `Offer math used ${money(r.rehabUsed)} (manual condition takes priority; a typed Rehab Budget overrides both).`
+              ? `Offer math used ${money(r.rehabUsed)} (your manual condition total; a typed Rehab Budget overrides it).`
               : 'Enter property condition above (or upload photos) to drive the rehab number into the offer.'}
-            {' '}Per-line photo conditions and the national-average column are the next add.
+            {' '}Your numbers = Rehab Calc line-item engine. National = area × national $/sf benchmark (mid-Atlantic, data-enrichment). Photo line uses pic-rehab’s overall condition.
           </p>
         </div>
       )}

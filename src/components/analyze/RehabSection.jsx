@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react'
-import { freshSystems, SIZING_FIELDS, RATE_SOURCE, TIER_LABELS, STANDARD_TIER_KEYS } from '../../math/rehab/rehabSystems.js'
-import { calcRehab, explainRow, pricesByCondition, pricesByConditionPerCount, resolveDefaultCount, isRowHidden } from '../../math/rehab/rehabMath.js'
+import { freshSystems, SIZING_FIELDS, RATE_SOURCE, TIER_LABELS, STANDARD_TIER_KEYS, OVERALL_TIERS } from '../../math/rehab/rehabSystems.js'
+import { calcRehab, explainRow, pricesByCondition, pricesByConditionPerCount, resolveDefaultCount, isRowHidden, nationalTotal } from '../../math/rehab/rehabMath.js'
 
 // Manual condition → rehab estimate, ported from Rehab Calc and embedded in the
 // Analyze-a-Deal flow. Line-item breakout + total. Reports its total up via
@@ -21,10 +21,15 @@ export default function RehabSection({ mode = 'residential', seed = {}, onTotalC
     return s
   })
   const [systems, setSystems] = useState(() => freshSystems(mode))
+  const [overallTier, setOverallTier] = useState('medium_rehab')
 
-  // Recompute on every change; surface total to the parent.
+  // Recompute on every change; surface BOTH totals (Steve's line-item engine and
+  // the national $/sf benchmark) to the parent.
   const result = useMemo(() => calcRehab(systems, sizing), [systems, sizing])
-  useEffect(() => { onTotalChange?.(result.totalRehab, result) }, [result.totalRehab]) // eslint-disable-line react-hooks/exhaustive-deps
+  const nat = useMemo(() => nationalTotal(mode, sizing, overallTier), [mode, sizing, overallTier])
+  useEffect(() => {
+    onTotalChange?.(result.totalRehab, { ...result, national: nat })
+  }, [result.totalRehab, nat.total]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const setSizeField = (k, v) => setSizing(p => ({ ...p, [k]: v }))
   const patchSystem = (id, patch) => setSystems(p => p.map(s => s.id === id ? { ...s, ...patch } : s))
@@ -53,10 +58,29 @@ export default function RehabSection({ mode = 'residential', seed = {}, onTotalC
         {visible.map(s => <Row key={s.id} system={s} sizing={sizing} onChange={patch => patchSystem(s.id, patch)} />)}
       </div>
 
-      {/* Totals */}
-      <div style={{ marginTop: 10, padding: '10px 14px', background: '#0A0F2C', color: '#fff', borderRadius: 8, display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: 8 }}>
-        <span style={{ fontWeight: 700, color: '#C9A84C' }}>Total Rehab (manual condition)</span>
-        <span style={{ fontWeight: 800, fontSize: 18 }}>{money(result.totalRehab)}</span>
+      {/* Overall condition → drives the national-average benchmark column */}
+      <div style={{ marginTop: 12, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, alignItems: 'end' }}>
+        <div>
+          <label style={lbl}>Overall condition (for national-average benchmark)</label>
+          <select style={inp} value={overallTier} onChange={e => setOverallTier(e.target.value)}>
+            {OVERALL_TIERS.map(t => <option key={t.id} value={t.id}>{t.label}</option>)}
+          </select>
+        </div>
+        <div style={{ fontSize: 11, color: '#6b7280' }}>National benchmark = {money(nat.psf)}/sf × {nat.area.toLocaleString()} sf (mid-Atlantic, source: data-enrichment)</div>
+      </div>
+
+      {/* Two totals: Steve's line-item engine vs national $/sf benchmark */}
+      <div style={{ marginTop: 10, display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <div style={{ padding: '10px 14px', background: '#0A0F2C', color: '#fff', borderRadius: 8 }}>
+          <div style={{ fontWeight: 700, color: '#C9A84C', fontSize: 12 }}>Total — your numbers</div>
+          <div style={{ fontWeight: 800, fontSize: 18 }}>{money(result.totalRehab)}</div>
+          <div style={{ fontSize: 10, color: '#cdd6ec' }}>{RATE_SOURCE[mode]}</div>
+        </div>
+        <div style={{ padding: '10px 14px', background: '#1E2A45', color: '#fff', borderRadius: 8 }}>
+          <div style={{ fontWeight: 700, color: '#C9A84C', fontSize: 12 }}>Total — national average</div>
+          <div style={{ fontWeight: 800, fontSize: 18 }}>{money(nat.total)}</div>
+          <div style={{ fontSize: 10, color: '#cdd6ec' }}>{nat.area.toLocaleString()} sf × {money(nat.psf)}/sf</div>
+        </div>
       </div>
       {result.holdingCost > 0 && (
         <div style={{ fontSize: 12, color: '#6b7280', marginTop: 4 }}>+ Holding {money(result.holdingCost)} (carried separately, not in rehab total)</div>
