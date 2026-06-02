@@ -27,8 +27,18 @@ export default function RehabSection({ mode = 'residential', seed = {}, onTotalC
   // the national $/sf benchmark) to the parent.
   const result = useMemo(() => calcRehab(systems, sizing), [systems, sizing])
   const nat = useMemo(() => nationalTotal(mode, sizing, overallTier), [mode, sizing, overallTier])
+  // Per-line breakdown (label + chosen condition/budget + $) for the report.
+  const breakdown = useMemo(() => {
+    const condById = {}
+    systems.forEach(s => {
+      condById[s.id] = s.pricing?.kind === 'amounts'
+        ? (Number(s.selectedAmount) > 0 ? money(Number(s.selectedAmount)) : '—')
+        : (s.condition ? (TIER_LABELS[s.condition] || s.condition) : '—')
+    })
+    return result.lineItems.map(li => ({ id: li.id, label: li.label, condition: condById[li.id] || '—', total: li.total }))
+  }, [systems, result])
   useEffect(() => {
-    onTotalChange?.(result.totalRehab, { ...result, national: nat })
+    onTotalChange?.(result.totalRehab, { ...result, national: nat, breakdown })
   }, [result.totalRehab, nat.total]) // eslint-disable-line react-hooks/exhaustive-deps
 
   const setSizeField = (k, v) => setSizing(p => ({ ...p, [k]: v }))

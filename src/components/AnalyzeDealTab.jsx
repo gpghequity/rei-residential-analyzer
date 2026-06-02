@@ -26,6 +26,16 @@ const money = (v) => (v == null || v === '' || !Number.isFinite(Number(v)))
   : '$' + Math.round(Number(v)).toLocaleString()
 const pct = (v) => (v == null || !Number.isFinite(Number(v))) ? '—' : (Number(v) * 100).toFixed(1) + '%'
 
+// Map a rehab-engine system id → pic-rehab's per-system key, and label its tier.
+const PHOTO_KEY_FOR = { roof: 'roof', kitchen: 'kitchen', furnace: 'hvac', hvac: 'hvac', plumbing: 'plumbing', electrical: 'electrical', windows: 'windows', siding: 'siding', exterior: 'exterior', exteriorPaint: 'exterior', facade: 'exterior', structure: 'structure', cosmetic: 'cosmetic', interior: 'interior', fullBath: 'bath' }
+const PHOTO_TIER_LABEL = { gold_leaf: 'Move-in', move_in: 'Move-in', light_rehab: 'Light', medium_rehab: 'Medium', heavy_rehab: 'Heavy', studs: 'Studs' }
+function photoConditionFor(systemId, tiers) {
+  if (!tiers) return '—'
+  const key = PHOTO_KEY_FOR[systemId]
+  const t = key && tiers[key]
+  return t ? (PHOTO_TIER_LABEL[t] || t) : '—'
+}
+
 // Normalize broker-stated figures out of whatever shape the extractor returned.
 // Handles BOTH shapes: single-PDF /extract/om (figures at extraction.*) and
 // multi-file /extract (figures under extraction.fast_calc.{storage|rental|flip|mhp}).
@@ -546,6 +556,8 @@ export default function AnalyzeDealTab({ sharedUrlState, deepUrlState }) {
         rehabPhotoNational: (showRehab && rehabDetail?.national?.area && photoRes?.overall_condition_tier)
           ? Math.round(rehabDetail.national.area * (NATIONAL_PSF[toBenchmarkTier(photoRes.overall_condition_tier)] ?? 0) * REGIONAL_ADJ)
           : null,
+        rehabBreakdown: showRehab ? (rehabDetail?.breakdown ?? null) : null,  // human per-line
+        rehabPhotoTiers: photoRes?.per_system_tiers ?? null,                   // photo per-system
         rehabUsed: num(calcFields.rehab) || null,
         missing,
         driveUrl: orch.driveUrl,
@@ -811,6 +823,31 @@ function Results({ r }) {
               : 'Enter property condition above (or upload photos) to drive the rehab number into the offer.'}
             {' '}Your numbers = Rehab Calc line-item engine. National = area × national $/sf benchmark (mid-Atlantic, data-enrichment). Photo line uses pic-rehab’s overall condition.
           </p>
+
+          {/* Per-line: human condition + $ (your numbers) vs photo-assessed condition */}
+          {r.rehabBreakdown && r.rehabBreakdown.length > 0 && (
+            <details style={{ marginTop: 8 }}>
+              <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Line-by-line — your condition &amp; $ vs the photo read</summary>
+              <div style={{ overflowX: 'auto', marginTop: 6 }}>
+                <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 460 }}>
+                  <thead><tr>{['System', 'Your condition', 'Your $', 'Photo says'].map((hh, i) => (
+                    <th key={i} style={{ padding: '5px 8px', background: '#1E2A45', color: '#fff', fontSize: 11, textAlign: i === 0 ? 'left' : 'right' }}>{hh}</th>
+                  ))}</tr></thead>
+                  <tbody>
+                    {r.rehabBreakdown.filter(li => li.id !== 'holding').map((li, i) => (
+                      <tr key={li.id} style={{ background: i % 2 ? '#f7f9fd' : '#fff' }}>
+                        <td style={{ padding: '5px 8px', fontWeight: 600 }}>{li.label}</td>
+                        <td style={{ padding: '5px 8px', textAlign: 'right' }}>{li.condition}</td>
+                        <td style={{ padding: '5px 8px', textAlign: 'right' }}>{money(li.total)}</td>
+                        <td style={{ padding: '5px 8px', textAlign: 'right', color: '#6b7280' }}>{photoConditionFor(li.id, r.rehabPhotoTiers)}</td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+              <p style={srcStyle}>“Photo says” is pic-rehab’s per-system read where the photos covered that system (—  = not assessed). Your $ uses your locked Rehab Calc numbers.</p>
+            </details>
+          )}
         </div>
       )}
 
