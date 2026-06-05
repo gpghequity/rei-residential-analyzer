@@ -52,6 +52,16 @@ export async function enrichCore(b = {}) {
         rent_estimate: avm.json.rent_estimate ?? null
       };
       out.sources.avm = avm.json.avm_source || 'data-enrichment';
+      // Second, independent comp source (web: Zillow / Realtor via Firecrawl).
+      if (avm.json.avm2_value != null) {
+        out.avm2 = {
+          value: avm.json.avm2_value,
+          source: avm.json.avm2_source || 'web',
+          basis: avm.json.avm2_basis || null,
+          sites: avm.json.avm2_sites || []
+        };
+        out.sources.avm2 = avm.json.avm2_source || 'web';
+      }
     } else {
       out.notes.push('AVM lookup returned no value');
     }

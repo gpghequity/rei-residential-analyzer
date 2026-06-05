@@ -221,6 +221,48 @@ function OfferTiers({ tiers }) {
   )
 }
 
+// Two independent comp sources side by side: RentCast (licensed MLS/public-record)
+// and Web (Zillow/Realtor estimate read live via Firecrawl). Lets the operator
+// triangulate instead of trusting a single number.
+function TwoCompSources({ primary, secondary }) {
+  const nice = (s) => ({
+    rentcast_sale_avm: 'RentCast (MLS + public records)',
+    firecrawl_zillow: 'Zillow Zestimate (web)',
+    firecrawl_realtor: 'Realtor.com estimate (web)',
+    firecrawl_web: 'Web estimate'
+  }[s] || s || 'source')
+  const p = (primary && primary.value != null) ? primary.value : null
+  const s = (secondary && secondary.value != null) ? secondary.value : null
+  const spread = (p && s) ? Math.round((Math.abs(p - s) / ((p + s) / 2)) * 100) : null
+  return (
+    <div style={{ margin: '8px 0' }}>
+      <div style={{ fontSize: 12, fontWeight: 700, color: '#1E2A45', marginBottom: 4 }}>Two comp sources</div>
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8 }}>
+        <div style={{ background: '#f1f6ff', border: '1px solid #c4d6f2', borderRadius: 6, padding: '8px 10px' }}>
+          <div style={{ fontSize: 11, color: '#6b7280' }}>Source 1 · {nice(primary?.source)}</div>
+          <div style={{ fontSize: 18, fontWeight: 800 }}>{p != null ? money(p) : '—'}</div>
+        </div>
+        <div style={{ background: '#f4fbf4', border: '1px solid #bfe0bf', borderRadius: 6, padding: '8px 10px' }}>
+          <div style={{ fontSize: 11, color: '#6b7280' }}>Source 2 · {s != null ? nice(secondary?.source) : 'Web (Zillow/Realtor)'}</div>
+          <div style={{ fontSize: 18, fontWeight: 800 }}>{s != null ? money(s) : '—'}</div>
+          {secondary?.sites?.length > 0 && (
+            <div style={srcStyle}>
+              {secondary.sites.map((x, i) => (
+                <span key={i}>{x.site}: {x.value != null ? money(x.value) : (x.stub ? 'off' : '—')}{i < secondary.sites.length - 1 ? ' · ' : ''}</span>
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+      <p style={{ ...srcStyle, margin: '4px 0 0' }}>
+        {spread != null
+          ? `The two sources are ${spread}% apart${spread <= 8 ? ' — tight agreement, confidence is good.' : spread <= 20 ? ' — moderate gap, sanity-check before relying on either.' : ' — wide gap, verify the address matched on both.'}`
+          : (s == null ? 'Second (web) source returned no estimate for this address — Zillow/Realtor may not have a page for it, or Firecrawl is off.' : 'Only one source returned a value.')}
+      </p>
+    </div>
+  )
+}
+
 // Plain-English math rows (replaces the raw JSON dump).
 function MathRows({ rows }) {
   if (!rows || !rows.length) return null
@@ -1034,6 +1076,7 @@ function Results({ r }) {
               : null}
             <Val label={r.isIncome ? 'Residential AVM (reference only — not used for income valuation)' : 'AVM / Estimated Market Value'} value={money(comps.avm?.value)} source={comps.avm?.source || 'Data Enrichment'} />
             {comps.avm && (comps.avm.low || comps.avm.high) && <Val label="AVM Range" value={`${money(comps.avm.low)} – ${money(comps.avm.high)}`} source={comps.avm.source} />}
+            <TwoCompSources primary={comps.avm} secondary={comps.avm2} />
             {comps.avm?.rent_estimate != null && <Val label="Rent Estimate" value={money(comps.avm.rent_estimate) + '/mo'} source={comps.avm.source} />}
             {comps.compContext && <p><b>Comp context:</b> {comps.compContext} <span style={srcStyle}>({comps.sources?.comps || 'Data Enrichment'})</span></p>}
             {comps.flood && <Val label="Flood Zone" value={`${comps.flood.zone || '—'}${comps.flood.sfha ? ' (SFHA — high risk)' : ''}`} source="FEMA via Data Enrichment" />}
