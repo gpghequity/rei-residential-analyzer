@@ -210,7 +210,7 @@ const PLATFORM_UNDERWRITING_STANDARDS = {
 
   COMMERCIAL: {
     assetClass: 'commercial',
-    mortgageRate: 0.0775,                 // 7.75% community bank default
+    mortgageRate: 0.0725,                 // 7.25% — storage = commercial = MF20+ (Steve / Bible §1)
     amortizationYears: 25,                // 25yr standard
     ltv: 0.75,                            // 75% LTV
     dscr: {
@@ -250,7 +250,7 @@ const PLATFORM_UNDERWRITING_STANDARDS = {
   MHP: {
     assetClass: 'mhp',
     capRateRange: { min: 0.085, max: 0.10 }, // 8.5–10% typically
-    mortgageRate: 0.075,
+    mortgageRate: 0.0725,                  // 7.25% — MHP uses the storage framework (Bible §1)
     amortizationYears: 25,
     ltv: 0.75,
     dscr: 1.25,
