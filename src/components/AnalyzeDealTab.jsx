@@ -527,6 +527,7 @@ export default function AnalyzeDealTab({ sharedUrlState, deepUrlState }) {
   const [fields, setFields] = useState({ address: '', city: '', state: '', zip: '' })
   const [docs, setDocs] = useState([])
   const [photos, setPhotos] = useState([])
+  const [pastedText, setPastedText] = useState('') // dump an agent email / notes here
   const [phase, setPhase] = useState('idle')
   const [step, setStep] = useState('')
   const [error, setError] = useState(null)
@@ -562,13 +563,19 @@ export default function AnalyzeDealTab({ sharedUrlState, deepUrlState }) {
       // 1) Orchestrate: store uploads + call extractor / photo / comps server-side.
       const fd = new FormData()
       docs.forEach(f => fd.append('docs', f))
+      // Pasted agent email / notes ride the SAME proven extraction path as an
+      // uploaded document — wrapped as a .txt "file" and read by the Claude
+      // extractor. It only fills gaps; anything you typed in the form wins.
+      const pasted = pastedText.trim()
+      if (pasted) fd.append('docs', new Blob([pasted], { type: 'text/plain' }), 'pasted-notes.txt')
       photos.forEach(f => fd.append('photos', f))
       fd.append('meta', JSON.stringify({
         propertyType: typeId, address: fields.address, city: fields.city, state: fields.state, zip: fields.zip,
         beds: fields.beds, baths: fields.baths, sqft: fields.sqft, dealType: mode
       }))
       const work = []
-      if (docs.length) work.push(`extracting ${docs.length} document(s)`)
+      const docCount = docs.length + (pasted ? 1 : 0)
+      if (docCount) work.push(`extracting ${docCount} document(s)${pasted ? ' (incl. pasted notes)' : ''}`)
       if (photos.length) work.push(`analyzing ${photos.length} photo(s)`)
       work.push('pulling comps')
       setStep(`Working: ${work.join(', ')}… this can take 20–60s for documents/photos (AI reading).`)
@@ -873,6 +880,16 @@ export default function AnalyzeDealTab({ sharedUrlState, deepUrlState }) {
         <label style={lbl}>Photos — sent to the photo analyzer</label>
         <input type="file" multiple accept="image/*" onChange={e => setPhotos([...e.target.files])} />
         {photos.length > 0 && <div style={srcStyle}>{photos.length} photo(s) attached</div>}
+
+        <label style={{ ...lbl, marginTop: 14 }}>Or paste an agent email / notes — dump the whole thing here</label>
+        <textarea
+          value={pastedText}
+          onChange={e => setPastedText(e.target.value)}
+          rows={6}
+          placeholder={'Paste the email or notes your agent sent — address, price, beds/baths, condition, NOI, whatever they wrote. The AI reads it and fills the gaps. Anything you typed in the form above always wins.'}
+          style={{ ...inp, resize: 'vertical', fontFamily: 'inherit', lineHeight: 1.45 }}
+        />
+        {pastedText.trim() && <div style={srcStyle}>{pastedText.trim().length.toLocaleString()} characters — will be read by the extractor on Analyze. Check the “Raw Extracted Data” panel to see exactly what it pulled.</div>}
       </div>
 
       <div className="no-print" style={{ marginBottom: 16 }}>
