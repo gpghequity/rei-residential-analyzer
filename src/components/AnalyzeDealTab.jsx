@@ -918,6 +918,16 @@ export default function AnalyzeDealTab({ sharedUrlState, deepUrlState }) {
 
   return (
     <div>
+      <div style={{ ...card, background: '#fef3c7', border: '2px solid #f59e0b', marginBottom: 16 }} className="no-print">
+        <h3 style={{ ...h3, color: '#78350f', marginBottom: 8 }}>🔀 Mixed-Use Property?</h3>
+        <p style={{ margin: '0 0 8px', fontSize: 14, color: '#92400e', lineHeight: 1.6 }}>
+          If this property has <strong>multiple asset types</strong> (storage + residential, commercial + storage, MHP + retail, etc), select <strong>"Mixed Use"</strong> below to enter each component separately with its own NOI and cap rate.
+        </p>
+        <p style={{ margin: 0, fontSize: 13, color: '#b45309', fontStyle: 'italic' }}>
+          Alternatively: run each asset type through its own single-asset tab first to get the NOI, then bring those numbers to the Mixed Use section.
+        </p>
+      </div>
+
       <div style={card} className="no-print">
         <h3 style={h3}>1 · Property Type</h3>
         <select aria-label="Property type" style={inp} value={typeId} onChange={e => { setTypeId(e.target.value); const t = getType(e.target.value); if (t.subModes) setMode(t.subModes[0].id) }}>
