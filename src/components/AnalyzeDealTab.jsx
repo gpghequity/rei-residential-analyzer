@@ -855,47 +855,38 @@ export default function AnalyzeDealTab({ sharedUrlState, deepUrlState }) {
       setStep('Running Math Bible analysis…')
       let calc = null, head = {}, calcTypeUsed = null, matrix = null, noiBasis = null
 
-      // ── Income calculation: respects type-specific rules (e.g. storage 35% floor) ──
+      // ── FORCED: If user entered income, compute it. No conditions. ──
       const grossN = num(calcFields.grossIncome)
       const expDollars = num(calcFields.expenses)
       const expRatio = num(calcFields.expenseRatio)
-      const userHasIncome = grossN > 0 || expDollars > 0 || expRatio > 0
       let matrixNOI = num(calcFields.noi)
 
-      // Compute NOI if user entered income
-      if (userHasIncome && !matrixNOI) {
+      // If no explicit NOI but user entered income, compute it
+      if (!matrixNOI && grossN > 0) {
         if (expDollars > 0) {
-          // User entered actual expense dollars
+          // Income - Expenses, respecting type-specific rules
           if (typeId === 'self_storage') {
-            // Storage has 35% expense floor
             const sn = storageNOI(grossN, Math.min(0.95, expDollars / grossN))
             matrixNOI = sn.noi
             noiBasis = sn.floorBinds
-              ? `Gross $${grossN.toLocaleString()} − expenses (35% storage floor binds)`
-              : `Gross $${grossN.toLocaleString()} − expenses $${expDollars.toLocaleString()}`
+              ? `Gross $${grossN.toLocaleString()} − expenses (35% floor)`
+              : `Gross $${grossN.toLocaleString()} − $${expDollars.toLocaleString()} expenses`
           } else {
-            // Other types: simple subtraction
             matrixNOI = Math.max(0, Math.round(grossN - expDollars))
-            noiBasis = `Gross $${grossN.toLocaleString()} − expenses $${expDollars.toLocaleString()}`
+            noiBasis = `$${grossN.toLocaleString()} − $${expDollars.toLocaleString()} = NOI`
           }
         } else if (expRatio > 0) {
-          // User entered expense ratio
-          if (typeId === 'self_storage') {
-            const sn = storageNOI(grossN, expRatio / 100)
-            matrixNOI = sn.noi
-            noiBasis = sn.floorBinds
-              ? `Gross $${grossN.toLocaleString()} × (1 − 35% storage floor)`
-              : `Gross $${grossN.toLocaleString()} × (1 − ${Math.round(sn.expenseRatio * 100)}% expense ratio)`
-          } else {
-            const er = Math.min(expRatio / 100, 0.95)
-            matrixNOI = Math.round(grossN * (1 - er))
-            noiBasis = `Gross $${grossN.toLocaleString()} × (1 − ${Math.round(expRatio)}% expense ratio)`
-          }
-        } else if (grossN > 0) {
-          // Only income, assume 40% expenses (or 35% for storage)
-          const assumedRatio = typeId === 'self_storage' ? 0.35 : 0.40
-          matrixNOI = Math.round(grossN * (1 - assumedRatio))
-          noiBasis = `Gross $${grossN.toLocaleString()} × (1 − ${Math.round(assumedRatio * 100)}% assumed expenses)`
+          // Income × (1 - ratio)
+          const ratio = expRatio / 100
+          matrixNOI = typeId === 'self_storage'
+            ? storageNOI(grossN, ratio).noi
+            : Math.round(grossN * (1 - Math.min(ratio, 0.95)))
+          noiBasis = `$${grossN.toLocaleString()} × (1 − ${expRatio}%)`
+        } else {
+          // Income only: assume 35% (storage) or 40% (other)
+          const ratio = typeId === 'self_storage' ? 0.35 : 0.40
+          matrixNOI = Math.round(grossN * (1 - ratio))
+          noiBasis = `$${grossN.toLocaleString()} × (1 − ${Math.round(ratio * 100)}% assumed)`
         }
       }
 
