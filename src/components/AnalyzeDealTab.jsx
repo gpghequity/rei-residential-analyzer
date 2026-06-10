@@ -1236,40 +1236,23 @@ function Results({ r }) {
       {/* INPUT DATA — What was actually entered */}
       {r && (
         <div style={card}>
-          <h3 style={h3}>Input Data Entered</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16 }}>
-            <Val label="Address" value={r.address} source="" />
-            <Val label="City, State, ZIP" value={`${r.fields?.city}, ${r.fields?.state} ${r.fields?.zip}`} source="" />
-            <Val label="Property Type" value={r.typeId} source="" />
-            <Val label="Your Name" value={r.fields?.user || '—'} source="" />
-            <Val label="Contact" value={r.fields?.contact || '—'} source="" />
-            {r.fields?.askingPrice ? <Val label="Asking Price" value={money(r.fields.askingPrice)} source="" /> : null}
-            {r.fields?.arv ? <Val label="ARV" value={money(r.fields.arv)} source="" /> : null}
-            {r.fields?.rehab ? <Val label="Rehab" value={money(r.fields.rehab)} source="" /> : null}
-            {r.fields?.beds ? <Val label="Beds" value={r.fields.beds} source="" /> : null}
-            {r.fields?.baths ? <Val label="Baths" value={r.fields.baths} source="" /> : null}
-            {r.fields?.sqft ? <Val label="Square Feet" value={r.fields.sqft.toLocaleString()} source="" /> : null}
-            {r.fields?.grossIncome ? <Val label="Gross Income" value={money(r.fields.grossIncome)} source="" /> : null}
-            {r.fields?.expenses ? <Val label="Expenses" value={money(r.fields.expenses)} source="" /> : null}
-            {r.fields?.noi ? <Val label="NOI (manual)" value={money(r.fields.noi)} source="" /> : null}
-            {r.fields?.capRate ? <Val label="Cap Rate" value={pct(r.fields.capRate)} source="" /> : null}
+          <h3 style={h3}>Data You Entered</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16, fontSize: 13 }}>
+            <div><strong>Address:</strong> {r.address}</div>
+            <div><strong>City, State, ZIP:</strong> {r.fields?.city}, {r.fields?.state} {r.fields?.zip}</div>
+            <div><strong>Property Type:</strong> {r.typeId}</div>
+            <div><strong>Your Name:</strong> {r.fields?.user || '—'}</div>
+            {r.fields?.askingPrice ? <div><strong>Asking Price:</strong> {money(r.fields.askingPrice)}</div> : null}
+            {r.fields?.arv ? <div><strong>ARV:</strong> {money(r.fields.arv)}</div> : null}
+            {r.fields?.rehab ? <div><strong>Rehab:</strong> {money(r.fields.rehab)}</div> : null}
+            {r.fields?.beds ? <div><strong>Beds:</strong> {r.fields.beds}</div> : null}
+            {r.fields?.baths ? <div><strong>Baths:</strong> {r.fields.baths}</div> : null}
+            {r.fields?.sqft ? <div><strong>Square Feet:</strong> {r.fields.sqft.toLocaleString()}</div> : null}
+            {r.fields?.grossIncome ? <div><strong>Gross Income:</strong> {money(r.fields.grossIncome)}</div> : null}
+            {r.fields?.expenses ? <div><strong>Expenses:</strong> {money(r.fields.expenses)}</div> : null}
+            {r.fields?.noi ? <div><strong>NOI:</strong> {money(r.fields.noi)}</div> : null}
+            {r.fields?.capRate ? <div><strong>Cap Rate:</strong> {pct(r.fields.capRate)}</div> : null}
           </div>
-
-          {/* CALCULATION OUTPUT — Raw numbers from math engine */}
-          <h3 style={{ ...h3, marginTop: 16 }}>Calculation Output</h3>
-          <details style={{ marginBottom: 12, padding: '8px 12px', border: '1px solid #d4dae8', borderRadius: 6, cursor: 'pointer' }}>
-            <summary style={{ fontWeight: 700, color: '#0A0F2C' }}>
-              Raw JSON Output (for debugging)
-            </summary>
-            <pre style={{ background: '#f7f9fd', padding: 12, borderRadius: 4, fontSize: 11, overflow: 'auto', marginTop: 8, maxHeight: 400 }}>
-{JSON.stringify({
-  calc: r.calc,
-  matrix: r.matrix ? { summary: r.matrix.summary, rows: r.matrix.rows.slice(0, 2).map(row => ({ structure: row.structure, offer: row.offer, pocket: row.pocketMoney })), rowsTotal: r.matrix.rows.length } : null,
-  headline: r.headline,
-  extracted: r.extracted
-}, null, 2)}
-            </pre>
-          </details>
         </div>
       )}
 
