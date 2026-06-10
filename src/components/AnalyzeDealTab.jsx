@@ -1234,25 +1234,69 @@ function Results({ r }) {
         </>
       )}
 
-      {/* INPUT DATA — What was actually entered */}
-      {r && (
+      {/* DATA RECONCILIATION — All fields: manual vs extracted */}
+      {r && r.fields && (
         <div style={card}>
-          <h3 style={h3}>Data You Entered</h3>
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 16, fontSize: 13 }}>
-            <div><strong>Address:</strong> {r.address}</div>
-            <div><strong>City, State, ZIP:</strong> {r.fields?.city}, {r.fields?.state} {r.fields?.zip}</div>
-            <div><strong>Property Type:</strong> {r.typeId}</div>
-            <div><strong>Your Name:</strong> {r.fields?.user || '—'}</div>
-            {r.fields?.askingPrice ? <div><strong>Asking Price:</strong> {money(r.fields.askingPrice)}</div> : null}
-            {r.fields?.arv ? <div><strong>ARV:</strong> {money(r.fields.arv)}</div> : null}
-            {r.fields?.rehab ? <div><strong>Rehab:</strong> {money(r.fields.rehab)}</div> : null}
-            {r.fields?.beds ? <div><strong>Beds:</strong> {r.fields.beds}</div> : null}
-            {r.fields?.baths ? <div><strong>Baths:</strong> {r.fields.baths}</div> : null}
-            {r.fields?.sqft ? <div><strong>Square Feet:</strong> {r.fields.sqft.toLocaleString()}</div> : null}
-            {r.fields?.grossIncome ? <div><strong>Gross Income:</strong> {money(r.fields.grossIncome)}</div> : null}
-            {r.fields?.expenses ? <div><strong>Expenses:</strong> {money(r.fields.expenses)}</div> : null}
-            {r.fields?.noi ? <div><strong>NOI:</strong> {money(r.fields.noi)}</div> : null}
-            {r.fields?.capRate ? <div><strong>Cap Rate:</strong> {pct(r.fields.capRate)}</div> : null}
+          <h3 style={h3}>All Input Data — Manual vs Extracted from Documents</h3>
+          <div style={{ overflowX: 'auto', marginBottom: 12 }}>
+            <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 1000, fontSize: 12 }}>
+              <thead>
+                <tr style={{ background: '#0A0F2C', color: '#fff' }}>
+                  <th style={{ padding: '10px 8px', textAlign: 'left', fontWeight: 600 }}>Field</th>
+                  <th style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 600 }}>You Entered</th>
+                  <th style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 600 }}>From Documents</th>
+                  <th style={{ padding: '10px 8px', textAlign: 'right', fontWeight: 600 }}>Used in Analysis</th>
+                  <th style={{ padding: '10px 8px', textAlign: 'left', fontWeight: 600, width: 200 }}>Source</th>
+                </tr>
+              </thead>
+              <tbody>
+                {[
+                  { k: 'address', label: 'Address' },
+                  { k: 'city', label: 'City' },
+                  { k: 'state', label: 'State' },
+                  { k: 'zip', label: 'ZIP' },
+                  { k: 'user', label: 'Your Name' },
+                  { k: 'contact', label: 'Contact' },
+                  { k: 'askingPrice', label: 'Asking Price', fmt: money },
+                  { k: 'arv', label: 'ARV', fmt: money },
+                  { k: 'rehab', label: 'Rehab', fmt: money },
+                  { k: 'beds', label: 'Beds' },
+                  { k: 'baths', label: 'Baths' },
+                  { k: 'sqft', label: 'Square Feet', fmt: (v) => v?.toLocaleString() },
+                  { k: 'stories', label: 'Stories' },
+                  { k: 'yearBuilt', label: 'Year Built' },
+                  { k: 'grossIncome', label: 'Gross Income', fmt: money },
+                  { k: 'expenses', label: 'Expenses', fmt: money },
+                  { k: 'expenseRatio', label: 'Expense Ratio %', fmt: (v) => v ? `${(v*100).toFixed(1)}%` : null },
+                  { k: 'noi', label: 'NOI', fmt: money },
+                  { k: 'capRate', label: 'Cap Rate', fmt: pct },
+                  { k: 'purchase', label: 'Purchase Price', fmt: money },
+                  { k: 'units', label: 'Units' },
+                  { k: 'totalUnits', label: 'Total Units' },
+                  { k: 'occupancy', label: 'Occupancy %', fmt: (v) => v ? `${(v*100).toFixed(0)}%` : null },
+                ].map(({ k, label, fmt }) => {
+                  const manual = r.fields[k]
+                  const extracted = r.extracted ? r.extracted[k] : null
+                  const used = manual || extracted
+                  const manualStr = manual ? (fmt ? fmt(manual) : String(manual)) : '—'
+                  const extractedStr = extracted ? (fmt ? fmt(extracted) : String(extracted)) : '—'
+                  const usedStr = used ? (fmt ? fmt(used) : String(used)) : '—'
+                  const conflict = manual && extracted && String(manual) !== String(extracted)
+
+                  return (
+                    <tr key={k} style={{ background: (manual || extracted) ? (conflict ? '#fdeaea' : '#f7f9fd') : '#fff', borderBottom: '1px solid #e5e7eb' }}>
+                      <td style={{ padding: '8px', fontWeight: 600, color: '#0A0F2C' }}>{label}</td>
+                      <td style={{ padding: '8px', textAlign: 'right', color: manual ? '#2F7A40' : '#9ca3af' }}>{manualStr}</td>
+                      <td style={{ padding: '8px', textAlign: 'right', color: extracted ? '#2F7A40' : '#9ca3af' }}>{extractedStr}</td>
+                      <td style={{ padding: '8px', textAlign: 'right', fontWeight: 600, color: '#0A0F2C' }}>{usedStr}</td>
+                      <td style={{ padding: '8px', fontSize: 11, color: conflict ? '#B23030' : '#6b7280' }}>
+                        {conflict ? <span style={{ fontWeight: 600, color: '#B23030' }}>⚠ Manual chosen</span> : (extracted ? 'Extracted' : (manual ? 'Manual' : '—'))}
+                      </td>
+                    </tr>
+                  )
+                })}
+              </tbody>
+            </table>
           </div>
         </div>
       )}
