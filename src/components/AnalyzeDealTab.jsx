@@ -651,16 +651,8 @@ export default function AnalyzeDealTab({ sharedUrlState, deepUrlState }) {
   const [error, setError] = useState(null)
   const [result, setResult] = useState(null)
 
-  // Clear form when user picks a new property type — fresh start for next deal
-  useEffect(() => {
-    setFields({ address: '', city: '', state: '', zip: '' })
-    setDocs([])
-    setPhotos([])
-    setPastedText('')
-    setResult(null)
-    setError(null)
-    setRehabCondition(0)
-  }, [typeId])
+  // NOTE: Removed auto-clear on typeId change — was potentially interfering with form state updates
+  // User can manually select new type, form keeps old values (user can delete if needed)
 
   const type = getType(typeId)
   const isPortfolio = portfolio && typeId !== 'ios_land'
