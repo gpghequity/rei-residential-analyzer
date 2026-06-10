@@ -1233,6 +1233,27 @@ function Results({ r }) {
         </>
       )}
 
+      {/* RAW CALCULATION DATA — All values used in analysis */}
+      {r && (
+        <div style={card}>
+          <h3 style={h3}>Raw Calculation Data</h3>
+          <details style={{ marginBottom: 12, padding: '8px 12px', border: '1px solid #d4dae8', borderRadius: 6 }}>
+            <summary style={{ cursor: 'pointer', fontWeight: 700, color: '#0A0F2C' }}>
+              Developer: Full Input State + Output
+            </summary>
+            <pre style={{ background: '#f7f9fd', padding: 12, borderRadius: 4, fontSize: 11, overflow: 'auto', marginTop: 8 }}>
+{JSON.stringify({
+  inputs: { address: r.address, typeId: r.typeId, ...r.fields },
+  extracted: r.extracted,
+  calc: r.calc,
+  matrix: r.matrix ? { summary: r.matrix.summary, rows: r.matrix.rows.map(row => ({ structure: row.structure, offer: row.offer, pocket: row.pocketMoney })) } : null,
+  headline: r.headline
+}, null, 2)}
+            </pre>
+          </details>
+        </div>
+      )}
+
       {/* DATA RECONCILIATION — Manual vs Extracted */}
       {r.dataReconciliation && r.dataReconciliation.some(d => d.manual || d.extracted) && (
         <div style={card}>
