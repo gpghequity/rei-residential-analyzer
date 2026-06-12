@@ -994,6 +994,7 @@ export default function AnalyzeDealTab({ sharedUrlState, deepUrlState }) {
         extracted: extractedNorm, extractedRaw: orch.extracted, extractorError,
         dataReconciliation,
         comps: orch.comps, photos: orch.photos, photoRes,
+        risk: orch.risk,
         calc, calcTypeUsed, headline: head, matrix, noiBasis,
         recommendation: rec, compSeeded, seedNote,
         brokerNOI, calcNOI, noiDelta,
@@ -1232,6 +1233,60 @@ function Results({ r }) {
           <PracticalRecommendation rec={r.matrix.recommendation} />
           <DetailCards rows={r.matrix.rows} assumptions={r.matrix.assumptions} />
         </>
+      )}
+
+      {/* DEAL EVALUATOR — Risk Analysis */}
+      {r.risk && (
+        <div style={card}>
+          <h3 style={h3}>Deal Evaluator — Risk Analysis</h3>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginBottom: 12 }}>
+            <div style={{ padding: '12px 14px', background: '#f0f7ff', border: '1px solid #b9cdf0', borderRadius: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#1E2A45', marginBottom: 4 }}>Risk Rating</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: r.risk.riskRating === 'High' ? '#B23030' : r.risk.riskRating === 'Elevated' ? '#C8851A' : '#2F7A40' }}>{r.risk.riskRating}</div>
+              <div style={srcStyle}>Confidence: {r.risk.confidence}</div>
+            </div>
+            <div style={{ padding: '12px 14px', background: '#fff4e0', border: '1px solid #e3c685', borderRadius: 8 }}>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#1E2A45', marginBottom: 4 }}>Red Flags Found</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#9a6700' }}>{r.risk.redFlagsCount}</div>
+              <div style={srcStyle}>Issues to review</div>
+            </div>
+          </div>
+          {r.risk.topRedFlags && r.risk.topRedFlags.length > 0 && (
+            <div style={{ marginBottom: 12 }}>
+              <b style={{ color: '#B23030', fontSize: 14 }}>Top Red Flags:</b>
+              <ul style={{ margin: '6px 0 0', fontSize: 13, paddingLeft: 20 }}>
+                {r.risk.topRedFlags.map((flag, i) => (
+                  <li key={i} style={{ marginBottom: 6, color: '#1E2A45' }}>
+                    <strong>{flag.category}</strong> ({flag.severity}): {flag.message}
+                  </li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {r.risk.topPositives && r.risk.topPositives.length > 0 && (
+            <div>
+              <b style={{ color: '#2F7A40', fontSize: 14 }}>Positive Indicators:</b>
+              <ul style={{ margin: '6px 0 0', fontSize: 13, paddingLeft: 20 }}>
+                {r.risk.topPositives.map((pos, i) => <li key={i} style={{ marginBottom: 4, color: '#1E2A45' }}>{pos}</li>)}
+              </ul>
+            </div>
+          )}
+          {r.risk.documentationStatus && (
+            <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #d4dae8' }}>
+              <b style={{ fontSize: 13, color: '#1E2A45' }}>Documentation Status:</b>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 8 }}>
+                <div>
+                  <span style={{ fontSize: 12, color: '#6b7280' }}>Received:</span>
+                  <div style={{ fontSize: 13, color: '#2F7A40' }}>{r.risk.documentationStatus.received?.length > 0 ? r.risk.documentationStatus.received.join(', ') : 'None'}</div>
+                </div>
+                <div>
+                  <span style={{ fontSize: 12, color: '#6b7280' }}>Missing:</span>
+                  <div style={{ fontSize: 13, color: '#C8851A' }}>{r.risk.documentationStatus.missing?.length > 0 ? r.risk.documentationStatus.missing.join(', ') : 'None'}</div>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
       )}
 
       {/* SIDE-BY-SIDE RESULTS COMPARISON — Manual vs Extracted */}
@@ -1649,6 +1704,16 @@ Pocket Money: ${money(s.pocketRange[0])} – ${money(s.pocketRange[1])}</pre>`)
   if (r.calc) {
     const mr = humanMath(r).map(x => `<tr><td>${x.label}${x.note ? ` <i>(${x.note})</i>` : ''}</td><td style="text-align:right">${x.value}</td></tr>`).join('')
     rows.push(`<h3>How We Got There</h3><table border="1" cellpadding="6" style="border-collapse:collapse">${mr}</table>`)
+  }
+  if (r.risk) {
+    rows.push(`<h3>Deal Evaluator — Risk Analysis</h3>
+<table border="1" cellpadding="8" style="border-collapse:collapse;width:100%">
+<tr><th colspan="2" style="background:#f0f7ff;text-align:left">Risk Assessment</th></tr>
+<tr><td><strong>Risk Rating</strong></td><td>${r.risk.riskRating}</td></tr>
+<tr><td><strong>Confidence</strong></td><td>${r.risk.confidence}</td></tr>
+<tr><td><strong>Red Flags</strong></td><td>${r.risk.redFlagsCount}</td></tr>
+${r.risk.topRedFlags?.map(f => `<tr><td colspan="2"><strong>${f.category}</strong>: ${f.message}</td></tr>`).join('') || ''}
+</table>`)
   }
   rows.push(`<h3>Raw Extracted</h3><pre>${JSON.stringify(r.extracted, null, 2)}</pre>`)
   rows.push(`<details><summary>Developer view (raw calc + headline)</summary><pre>${JSON.stringify({ headline: r.headline, calc: r.calc }, null, 2)}</pre></details>`)
