@@ -136,27 +136,49 @@ export async function analyzeDeal(req, res) {
       });
       if (evalRes.ok) {
         const evalRaw = await evalRes.json();
-        // Map evaluator response to Baby Analyzer's expected format
         const rec = evalRaw.recommendation || {};
         const score = rec.score || 0;
 
-        // Generate red flags from scorecard breakdown
-        const redFlags = [];
-        if (evalRaw.scorecard?.scores) {
-          const scores = evalRaw.scorecard.scores;
-          if (scores.crime <= 2) redFlags.push({ category: 'Crime', severity: 'High', message: 'High crime rate in area' });
-          if (scores.population <= 2) redFlags.push({ category: 'Population', severity: 'Medium', message: 'Declining or stagnant population' });
-          if (scores.demand <= 3) redFlags.push({ category: 'Demand', severity: 'Medium', message: 'Weak buyer/tenant demand' });
-          if (scores.supply <= 3 && scores.supply > 0) redFlags.push({ category: 'Supply', severity: 'Medium', message: 'Oversupplied market' });
-          if (scores.income <= 3) redFlags.push({ category: 'Income', severity: 'Medium', message: 'Low median household income' });
-        }
+        // Build detailed red flags from all sources
+        const allRedFlags = evalRaw.sections?.redFlags?.flags || [];
+        const topRedFlags = allRedFlags.slice(0, 5).map(f => ({
+          category: f.category || 'Market',
+          severity: f.severity || 'Warning',
+          message: f.message || f.flag || ''
+        }));
+
+        // Build discussion with facts from market sections
+        const discussion = [];
+        const pop = evalRaw.sections?.population;
+        const emp = evalRaw.sections?.employment;
+        const sup = evalRaw.sections?.supply;
+        const dem = evalRaw.sections?.demand;
+        const inc = evalRaw.sections?.income;
+
+        if (pop?.trend === 'declining') discussion.push(`Population is declining (${pop.current?.toLocaleString()} current vs ${pop.prior?.toLocaleString()} prior) — fewer potential buyers/renters.`);
+        if (pop?.trend === 'improving') discussion.push(`Population growing (${pop.current?.toLocaleString()} current) — increasing demand base.`);
+        if (emp?.diversification === 'concentrated') discussion.push(`Employment is concentrated (not diversified) — economic downturn in key employer affects entire market.`);
+        if (emp?.diversification === 'highly-diversified') discussion.push(`Employment is highly diversified — market resilient to economic shifts.`);
+        if (sup?.saturation === 'Oversupplied') discussion.push(`Market is oversupplied with existing inventory and new construction — pricing pressure, rent growth difficult.`);
+        if (sup?.saturation === 'Undersupplied') discussion.push(`Market is undersupplied — strong pricing power, demand exceeds supply.`);
+        if (dem?.overall === 'Weak') discussion.push(`Demand is weak — fewer buyers/tenants competing for properties.`);
+        if (dem?.overall === 'Strong') discussion.push(`Demand is strong — multiple offers expected, quick absorption.`);
+        if (inc?.medianHHI && inc.medianHHI < 40000) discussion.push(`Median household income is low ($${inc.medianHHI.toLocaleString()}) — renters have less purchasing power, default risk higher.`);
+        if (inc?.medianHHI && inc.medianHHI > 80000) discussion.push(`Strong household income ($${inc.medianHHI.toLocaleString()}) — creditworthy renters, lower default risk.`);
+
+        // Build advice
+        const advice = [];
+        if (score < 50) advice.push('Before proceeding: Verify seller assumptions against actual market data. Market headwinds present significant risk.');
+        if (score >= 70) advice.push('Market supports the deal. Monitor local employment and new supply pipeline.');
+        if (allRedFlags.length > 0) advice.push('Key verification items: ' + topRedFlags.map(f => f.message).join('; '));
+        if (evalRaw.transparency?.morePreciseWith?.length > 0) advice.push('To improve confidence: ' + evalRaw.transparency.morePreciseWith.join(', '));
 
         riskAnalysis = {
           riskRating: score >= 85 ? 'Low' : score >= 70 ? 'Low' : score >= 50 ? 'Elevated' : 'High',
           confidence: evalRaw.transparency?.confidenceLevel || 'Medium',
-          redFlagsCount: redFlags.length,
-          topRedFlags: redFlags.slice(0, 3),
-          topPositives: (evalRaw.evidence?.opportunities || []).slice(0, 3),
+          redFlagsCount: topRedFlags.length,
+          topRedFlags: topRedFlags,
+          topPositives: (evalRaw.sections?.opportunities?.opportunities || []).slice(0, 3),
           documentationStatus: {
             received: evalRaw.transparency?.basedOn || [],
             missing: evalRaw.transparency?.morePreciseWith || []
@@ -164,7 +186,10 @@ export async function analyzeDeal(req, res) {
           score: score,
           recommendation: rec.recommendation,
           basis: rec.basis,
+          discussion: discussion.length > 0 ? discussion : ['Insufficient market data to assess.'],
+          advice: advice.length > 0 ? advice : [],
           transparency: evalRaw.transparency,
+          sections: evalRaw.sections,
           raw: evalRaw
         };
       }

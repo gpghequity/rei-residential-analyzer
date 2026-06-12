@@ -1243,45 +1243,57 @@ function Results({ r }) {
             <div style={{ padding: '12px 14px', background: '#f0f7ff', border: '1px solid #b9cdf0', borderRadius: 8 }}>
               <div style={{ fontSize: 12, fontWeight: 700, color: '#1E2A45', marginBottom: 4 }}>Risk Rating</div>
               <div style={{ fontSize: 22, fontWeight: 800, color: r.risk.riskRating === 'High' ? '#B23030' : r.risk.riskRating === 'Elevated' ? '#C8851A' : '#2F7A40' }}>{r.risk.riskRating}</div>
-              <div style={srcStyle}>Confidence: {r.risk.confidence}</div>
+              <div style={srcStyle}>Confidence: {r.risk.confidence} · Score: {r.risk.score}/100</div>
             </div>
             <div style={{ padding: '12px 14px', background: '#fff4e0', border: '1px solid #e3c685', borderRadius: 8 }}>
-              <div style={{ fontSize: 12, fontWeight: 700, color: '#1E2A45', marginBottom: 4 }}>Red Flags Found</div>
-              <div style={{ fontSize: 22, fontWeight: 800, color: '#9a6700' }}>{r.risk.redFlagsCount}</div>
-              <div style={srcStyle}>Issues to review</div>
+              <div style={{ fontSize: 12, fontWeight: 700, color: '#1E2A45', marginBottom: 4 }}>Recommendation</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#9a6700' }}>{r.risk.recommendation}</div>
+              <div style={srcStyle}>{r.risk.basis}</div>
             </div>
           </div>
+
+          {r.risk.discussion && r.risk.discussion.length > 0 && (
+            <div style={{ marginBottom: 16, padding: '12px 14px', background: '#f7f9fd', borderRadius: 6 }}>
+              <b style={{ fontSize: 13, color: '#1E2A45', display: 'block', marginBottom: 8 }}>Market Analysis:</b>
+              <ul style={{ margin: 0, fontSize: 13, paddingLeft: 20, lineHeight: 1.6 }}>
+                {r.risk.discussion.map((point, i) => <li key={i} style={{ marginBottom: 8, color: '#1E2A45' }}>{point}</li>)}
+              </ul>
+            </div>
+          )}
+
           {r.risk.topRedFlags && r.risk.topRedFlags.length > 0 && (
             <div style={{ marginBottom: 12 }}>
-              <b style={{ color: '#B23030', fontSize: 14 }}>Top Red Flags:</b>
+              <b style={{ color: '#B23030', fontSize: 14 }}>⚠ Key Risks:</b>
               <ul style={{ margin: '6px 0 0', fontSize: 13, paddingLeft: 20 }}>
                 {r.risk.topRedFlags.map((flag, i) => (
                   <li key={i} style={{ marginBottom: 6, color: '#1E2A45' }}>
-                    <strong>{flag.category}</strong> ({flag.severity}): {flag.message}
+                    <strong>{flag.category}</strong>: {flag.message}
                   </li>
                 ))}
               </ul>
             </div>
           )}
-          {r.risk.topPositives && r.risk.topPositives.length > 0 && (
-            <div>
-              <b style={{ color: '#2F7A40', fontSize: 14 }}>Positive Indicators:</b>
-              <ul style={{ margin: '6px 0 0', fontSize: 13, paddingLeft: 20 }}>
-                {r.risk.topPositives.map((pos, i) => <li key={i} style={{ marginBottom: 4, color: '#1E2A45' }}>{pos}</li>)}
+
+          {r.risk.advice && r.risk.advice.length > 0 && (
+            <div style={{ marginBottom: 12, padding: '12px 14px', background: '#f0f7ff', borderRadius: 6, borderLeft: '4px solid #0A0F2C' }}>
+              <b style={{ fontSize: 13, color: '#0A0F2C', display: 'block', marginBottom: 8 }}>💡 Recommended Actions:</b>
+              <ul style={{ margin: 0, fontSize: 12, paddingLeft: 20, color: '#1E2A45', lineHeight: 1.5 }}>
+                {r.risk.advice.map((item, i) => <li key={i} style={{ marginBottom: 6 }}>{item}</li>)}
               </ul>
             </div>
           )}
+
           {r.risk.documentationStatus && (
             <div style={{ marginTop: 12, paddingTop: 12, borderTop: '1px solid #d4dae8' }}>
-              <b style={{ fontSize: 13, color: '#1E2A45' }}>Documentation Status:</b>
+              <b style={{ fontSize: 13, color: '#1E2A45' }}>Data Sources:</b>
               <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 12, marginTop: 8 }}>
                 <div>
-                  <span style={{ fontSize: 12, color: '#6b7280' }}>Received:</span>
-                  <div style={{ fontSize: 13, color: '#2F7A40' }}>{r.risk.documentationStatus.received?.length > 0 ? r.risk.documentationStatus.received.join(', ') : 'None'}</div>
+                  <span style={{ fontSize: 12, color: '#6b7280' }}>Used:</span>
+                  <div style={{ fontSize: 12, color: '#2F7A40', lineHeight: 1.4 }}>{r.risk.documentationStatus.received?.length > 0 ? r.risk.documentationStatus.received.join('; ') : 'Minimal data'}</div>
                 </div>
                 <div>
-                  <span style={{ fontSize: 12, color: '#6b7280' }}>Missing:</span>
-                  <div style={{ fontSize: 13, color: '#C8851A' }}>{r.risk.documentationStatus.missing?.length > 0 ? r.risk.documentationStatus.missing.join(', ') : 'None'}</div>
+                  <span style={{ fontSize: 12, color: '#6b7280' }}>To Improve:</span>
+                  <div style={{ fontSize: 12, color: '#C8851A', lineHeight: 1.4 }}>{r.risk.documentationStatus.missing?.length > 0 ? r.risk.documentationStatus.missing.join('; ') : 'Complete'}</div>
                 </div>
               </div>
             </div>
