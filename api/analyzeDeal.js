@@ -58,10 +58,12 @@ export async function analyzeDeal(req, res) {
     const photoFindings = photos.length ? await extractPhotosCore(photos, { manualSqft: sqft, propertyAddress: address }) : null;
     const comps = await enrichCore({ address, city, state, zip, beds, baths, sqft, assetType: propertyType });
 
-    // 4a) EVALUATOR INTEGRATION: Call risk analysis service with enriched data
+    // 4a) EVALUATOR INTEGRATION: Call Market Reality Engine with comprehensive market data
     let riskAnalysis = null;
     try {
       const evalPayload = {
+        address: meta.propertyAddress || address,
+        dealType: meta.propertyType || 'unknown',
         babyAnalyzerOutput: {
           inputs: {
             occupancy: meta.occupancy || 0,
@@ -69,25 +71,39 @@ export async function analyzeDeal(req, res) {
             noi: meta.noi || 0,
             capRate: meta.capRate || 0
           },
-          extracted: extracted ? { economicOccupancy: extracted.economicOccupancy } : {}
+          extracted: extracted ? { economicOccupancy: extracted.economicOccupancy } : {},
+          isIncome: meta.propertyType && ['storage', 'multifamily', 'commercial', 'mhp', 'rv_park', 'ios'].includes(meta.propertyType)
         },
         demographic: comps?.demographic || {},
+        supply: comps?.supply || {},
+        demand: comps?.demand || {},
         crime: comps?.crime || {},
         flood: comps?.flood || {},
-        docs: docs.map(d => d.originalname || 'doc')
+        environmental: comps?.environmental || {},
+        housing: comps?.housing || {},
+        commercial: comps?.commercial || {},
+        employment: comps?.employment || {},
+        income: comps?.income || {},
+        docs: docs.map(d => d.originalname || 'doc'),
+        sellerClaims: {
+          rentGrowth: meta.capRate > 0,
+          occupancy: meta.occupancy > 80,
+          marketGrowth: comps?.demographic?.currentPopulation > comps?.demographic?.priorPopulation,
+          supplyConstrained: false
+        }
       };
       const evalRes = await fetch('https://rei-deal-risk-intelligence-production.up.railway.app/analyze', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(evalPayload),
-        timeout: 10000
+        timeout: 15000
       });
       if (evalRes.ok) {
         riskAnalysis = await evalRes.json();
       }
     } catch (evalErr) {
-      console.warn('[EVALUATOR] Risk analysis failed (non-blocking):', evalErr.message);
-      // Risk analysis is optional — don't block deal analysis
+      console.warn('[EVALUATOR] Market Reality Engine failed (non-blocking):', evalErr.message);
+      // Market analysis is optional — don't block deal analysis
     }
 
     // 4b) Store raw findings as JSON artifacts (including risk analysis)
