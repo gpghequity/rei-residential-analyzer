@@ -53,10 +53,10 @@ export function loadConstants() {
   flat.PITI_RESERVE_MONTHS = 3                                     // 3 months PITI/tax reserve
   flat.WORKING_CAPITAL_PCT = 0.25                                  // 25% working capital reserve (NOT 10%)
 
-  // Residential expense pads (NOI adjustment factors)
-  flat.PAD_LIGHT      = RES.expensePads?.light ?? 0                // 0% light pad
-  flat.PAD_STANDARD   = RES.expensePads?.standard ?? 0.20          // 20% standard pad
-  flat.PAD_HARSH      = RES.expensePads?.harsh ?? 0.33             // 33% harsh pad
+  // Residential MVM pads (maintenance & vacancy management) — applies to gross income, per Math Bible
+  flat.PAD_LIGHT      = RES.expensePads?.light ?? 0                // 0% MVM
+  flat.PAD_STANDARD   = RES.expensePads?.standard ?? 0.15          // 15% MVM (standard conservative)
+  flat.PAD_HARSH      = RES.expensePads?.harsh ?? 0.30             // 30% MVM (very conservative)
 
   // Residential MAO (maximum allowable offer) = ARV × factor - rehab
   flat.MAO_FACTOR     = RES.arvMultiplier || 0.70                  // 70% of ARV for cash offer

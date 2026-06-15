@@ -116,7 +116,7 @@ export default function ResidentialTab({ urlState, sharedUrlState }) {
         <h2 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 600 }}>Residential</h2>
         <p style={{ color: '#5a6a8a', fontSize: 14, lineHeight: 1.6, margin: 0 }}>
           Math Bible v3 residential engine — flip MAO (70% rule with $10k wholesale fee), rental DSCR
-          (3-card pad stack: light / standard / harsh), 40th-percentile ARV from comps, Owner Hard Mode (internal).
+          (3-tier MVM: 0% / 15% / 30% maintenance &amp; vacancy), 40th-percentile ARV from comps, Owner Hard Mode (internal).
         </p>
       </header>
 
@@ -169,8 +169,9 @@ function LoiPrepResidential({ mode, results, propertyContext }) {
     const standard = results.modes.standard
     const dscrStd = results.dscr.standard
     rows.push(['Annual rent (gross)', formatMoney(results.inputs.grossDollarsIn)])
+    rows.push(['MVM (15% of income)', formatMoney(standard.pad)])
     rows.push(['Hard OpEx', formatMoney(results.inputs.hardCosts)])
-    rows.push(['NOI (Standard, 20% pad)', formatMoney(standard.noi)])
+    rows.push(['NOI (Standard, 15% MVM)', formatMoney(standard.noi)])
     if (results.mao.endBuyer > 0) {
       rows.push(['MAO end-buyer purchase', formatMoney(results.mao.endBuyer)])
       rows.push(['Recommended offer', formatMoney(results.mao.yourOffer)])
@@ -312,9 +313,9 @@ function FlipResults({ r }) {
 function RentalResults({ r }) {
   const { modes, mao, dscr, ownerHardMode: hardMode, arvResult } = r
   const cardData = [
-    { key: 'light',    label: 'Light (0% pad)',      m: modes.light,    d: dscr.light },
-    { key: 'standard', label: 'Standard (20% pad)',  m: modes.standard, d: dscr.standard },
-    { key: 'harsh',    label: 'Harsh (30% pad)',     m: modes.harsh,    d: dscr.harsh }
+    { key: 'light',    label: 'Light (0% MVM)',      m: modes.light,    d: dscr.light },
+    { key: 'standard', label: 'Standard (15% MVM)',  m: modes.standard, d: dscr.standard },
+    { key: 'harsh',    label: 'Harsh (30% MVM)',     m: modes.harsh,    d: dscr.harsh }
   ]
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: 24, paddingTop: 16, borderTop: '2px solid #1a2456' }}>
@@ -329,8 +330,8 @@ function RentalResults({ r }) {
       {cardData.map(card => (
         <Card key={card.key} title={`Rental ${card.label}`}>
           <Row label="Gross income" value={formatMoney(card.m.grossDollarsIn)} />
+          <Row label="− MVM (maintenance & vacancy)" value={formatMoney(-card.m.pad)} accent={`${formatPct(card.m.padPct)} of income`} />
           <Row label="− Hard costs" value={formatMoney(-card.m.hardCosts)} />
-          <Row label={`− Pad (${formatPct(card.m.padPct)})`} value={formatMoney(-card.m.pad)} />
           <Row label="NOI" value={formatMoney(card.m.noi)} bold />
           {mao.endBuyer > 0 && (
             <>
