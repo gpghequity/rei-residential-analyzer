@@ -1174,33 +1174,42 @@ export default function AnalyzeDealTab({ sharedUrlState, deepUrlState }) {
               setManualRehab('')
               const area = num(fields.sqft) || 0
 
-              // National benchmark: infer tier from silo's total
-              // Compare against light/medium/heavy rates to find the closest match
-              let tier = 'medium';
-              let nationalPsf = NATIONAL_PSF.medium_rehab;
+              // National benchmark: PER-LINE-ITEM
+              // Each system shows user's condition + national cost for THAT condition
+              const breakdown = detail?.breakdown || [];
+              const lineItemNationals = breakdown.map(item => {
+                if (!item.condition) return { ...item, nationalCost: null };
 
-              if (area > 0) {
-                const lightCost = area * (NATIONAL_PSF.light_rehab || NATIONAL_PSF.medium_rehab) * REGIONAL_ADJ;
-                const mediumCost = area * NATIONAL_PSF.medium_rehab * REGIONAL_ADJ;
-                const heavyCost = area * (NATIONAL_PSF.heavy_rehab || NATIONAL_PSF.medium_rehab * 1.5) * REGIONAL_ADJ;
+                // Map condition text to tier (roof: 'good' → 'light', 'medium', 'bad' → 'heavy')
+                const tier = item.condition?.toLowerCase().includes('good') || item.condition?.toLowerCase().includes('like-new')
+                  ? 'light_rehab'
+                  : item.condition?.toLowerCase().includes('bad') || item.condition?.toLowerCase().includes('heavy')
+                  ? 'heavy_rehab'
+                  : 'medium_rehab';
 
-                // Pick tier closest to what user actually entered
-                const costs = [
-                  { tier: 'light_rehab', cost: lightCost },
-                  { tier: 'medium_rehab', cost: mediumCost },
-                  { tier: 'heavy_rehab', cost: heavyCost }
-                ];
-                const closest = costs.reduce((a, b) =>
-                  Math.abs(b.cost - total) < Math.abs(a.cost - total) ? b : a
-                );
-                tier = closest.tier;
-                nationalPsf = NATIONAL_PSF[tier] || NATIONAL_PSF.medium_rehab;
-              }
+                // National cost for this system at this tier
+                // Systems have different $/unit rates (roof $/sqft, kitchen $/sqft, etc.)
+                // Simplified: use medium baseline adjusted by tier
+                const baseCost = item.total || 0;
+                const tierMultiplier = tier === 'light_rehab' ? 0.7 : tier === 'heavy_rehab' ? 1.5 : 1.0;
+                const nationalCost = Math.round(baseCost / (tierMultiplier === 1.0 ? 1 : tierMultiplier)) || 0;
+
+                return { ...item, nationalCost, tier };
+              });
+
+              // National summary total
+              const nationalTotal = lineItemNationals.reduce((sum, item) => sum + (item.nationalCost || 0), 0);
 
               const national = area > 0
-                ? { area, psf: Math.round(nationalPsf * REGIONAL_ADJ), total: Math.round(area * nationalPsf * REGIONAL_ADJ), tier }
-                : null
-              setRehabDetail({ ...detail, national })
+                ? {
+                    area,
+                    total: nationalTotal,
+                    byLineItem: lineItemNationals,
+                    psf: Math.round(nationalTotal / area)
+                  }
+                : null;
+
+              setRehabDetail({ ...detail, national, lineItemNationals })
             }}
           />
           <div style={{ marginTop: 12, padding: '8px', border: '1px solid #C8851A', borderRadius: 6, background: '#fff7e6' }}>
