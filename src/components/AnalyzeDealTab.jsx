@@ -1654,18 +1654,25 @@ function Results({ r }) {
               <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Line-by-line — your condition &amp; $ vs the photo read</summary>
               <div style={{ overflowX: 'auto', marginTop: 6 }}>
                 <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 460 }}>
-                  <thead><tr>{['System', 'Your condition', 'Your $', 'Photo says'].map((hh, i) => (
+                  <thead><tr>{['System', 'Your condition', 'Your $', 'National $', 'Variance'].map((hh, i) => (
                     <th key={i} style={{ padding: '5px 8px', background: '#1E2A45', color: '#fff', fontSize: 11, textAlign: i === 0 ? 'left' : 'right' }}>{hh}</th>
                   ))}</tr></thead>
                   <tbody>
-                    {r.rehabBreakdown.filter(li => li.id !== 'holding').map((li, i) => (
-                      <tr key={li.id} style={{ background: i % 2 ? '#f7f9fd' : '#fff' }}>
-                        <td style={{ padding: '5px 8px', fontWeight: 600 }}>{li.label}</td>
-                        <td style={{ padding: '5px 8px', textAlign: 'right' }}>{li.condition}</td>
-                        <td style={{ padding: '5px 8px', textAlign: 'right' }}>{money(li.total)}</td>
-                        <td style={{ padding: '5px 8px', textAlign: 'right', color: '#6b7280' }}>{photoConditionFor(li.id, r.rehabPhotoTiers)}</td>
-                      </tr>
-                    ))}
+                    {r.rehabBreakdown.filter(li => li.id !== 'holding').map((li, i) => {
+                      const natl = r.lineItemNationals?.find(n => n.id === li.id);
+                      const variance = natl?.nationalCost ? Math.round(((li.total - natl.nationalCost) / natl.nationalCost) * 100) : null;
+                      return (
+                        <tr key={li.id} style={{ background: i % 2 ? '#f7f9fd' : '#fff' }}>
+                          <td style={{ padding: '5px 8px', fontWeight: 600 }}>{li.label}</td>
+                          <td style={{ padding: '5px 8px', textAlign: 'right' }}>{li.condition}</td>
+                          <td style={{ padding: '5px 8px', textAlign: 'right', fontWeight: 600 }}>{money(li.total)}</td>
+                          <td style={{ padding: '5px 8px', textAlign: 'right', color: '#6b7280' }}>{natl?.nationalCost ? money(natl.nationalCost) : '—'}</td>
+                          <td style={{ padding: '5px 8px', textAlign: 'right', color: variance && variance < -20 ? '#dc2626' : variance && variance > 20 ? '#ea580c' : '#059669', fontWeight: 600 }}>
+                            {variance !== null ? `${variance > 0 ? '+' : ''}${variance}%` : '—'}
+                          </td>
+                        </tr>
+                      );
+                    })}
                   </tbody>
                 </table>
               </div>
