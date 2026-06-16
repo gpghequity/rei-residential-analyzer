@@ -1174,41 +1174,14 @@ export default function AnalyzeDealTab({ sharedUrlState, deepUrlState }) {
               setManualRehab('')
               const area = num(fields.sqft) || 0
 
-              // National benchmark: PER-LINE-ITEM
-              // Use actual national $/sqft rates from Remodeling Magazine for the condition selected
+              // National benchmark: DISABLED until we have per-system national rates
+              // We have Steve's locked per-system rates (roof $/sqft, kitchen per unit, etc.)
+              // But we don't have per-system national benchmarks to compare against.
+              // National blanket $/sqft ($22–80/sf) is not comparable to per-system line items.
+              // TODO: Source per-system national rates (Remodeling Magazine) and re-enable this.
               const breakdown = detail?.breakdown || [];
-              const area = num(fields.sqft) || 0;
-
-              const lineItemNationals = breakdown.map(item => {
-                if (!item.condition || area <= 0) return { ...item, nationalCost: null };
-
-                // Map condition text to tier using toBenchmarkTier logic
-                const condLower = item.condition?.toLowerCase() || '';
-                let tier = 'medium_rehab'; // default
-                if (condLower.includes('good') || condLower.includes('like') || condLower.includes('new') || condLower.includes('light')) {
-                  tier = 'light_rehab';
-                } else if (condLower.includes('bad') || condLower.includes('heavy') || condLower.includes('old')) {
-                  tier = 'heavy_rehab';
-                }
-
-                // Use actual national $/sqft from Remodeling Magazine benchmarks
-                const nationalPsfRate = NATIONAL_PSF[tier] || NATIONAL_PSF.medium_rehab;
-                const nationalCost = Math.round(area * nationalPsfRate * REGIONAL_ADJ);
-
-                return { ...item, nationalCost, tier, nationalPsfRate };
-              });
-
-              // National summary total
-              const nationalTotal = lineItemNationals.reduce((sum, item) => sum + (item.nationalCost || 0), 0);
-
-              const national = area > 0
-                ? {
-                    area,
-                    total: nationalTotal,
-                    byLineItem: lineItemNationals,
-                    psf: Math.round(nationalTotal / area)
-                  }
-                : null;
+              const lineItemNationals = breakdown.map(item => ({ ...item, nationalCost: null }));
+              const national = null;
 
               setRehabDetail({ ...detail, national, lineItemNationals })
             }}
@@ -1624,7 +1597,7 @@ function Results({ r }) {
           <div style={{ overflowX: 'auto' }}>
             <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 420 }}>
               <thead><tr>
-                {['Source', 'Your numbers', 'National average'].map((h, i) => (
+                {['Source', 'Your numbers'].map((h, i) => (
                   <th key={i} style={{ padding: '6px 10px', background: '#0A0F2C', color: '#fff', fontSize: 12, textAlign: i ? 'right' : 'left' }}>{h}</th>
                 ))}
               </tr></thead>
@@ -1632,21 +1605,19 @@ function Results({ r }) {
                 <tr>
                   <td style={{ padding: '6px 10px', fontWeight: 600, borderBottom: '1px solid #eef1f7' }}>Human (condition answers)</td>
                   <td style={{ padding: '6px 10px', textAlign: 'right', borderBottom: '1px solid #eef1f7' }}>{money(r.rehabCondition)}</td>
-                  <td style={{ padding: '6px 10px', textAlign: 'right', borderBottom: '1px solid #eef1f7' }}>{r.rehabConditionNational != null ? money(r.rehabConditionNational) : '—'}</td>
                 </tr>
                 <tr style={{ background: '#f7f9fd' }}>
                   <td style={{ padding: '6px 10px', fontWeight: 600 }}>Photo (pic-rehab read)</td>
                   <td style={{ padding: '6px 10px', textAlign: 'right' }}>{r.rehabPhoto != null ? money(r.rehabPhoto) : '—'}</td>
-                  <td style={{ padding: '6px 10px', textAlign: 'right' }}>{r.rehabPhotoNational != null ? money(r.rehabPhotoNational) : '—'}</td>
                 </tr>
               </tbody>
             </table>
           </div>
           <p style={srcStyle}>
             {r.rehabUsed != null
-              ? `Offer math used ${money(r.rehabUsed)} (your manual condition total; a typed Rehab Budget overrides it).`
-              : 'Enter property condition above (or upload photos) to drive the rehab number into the offer.'}
-            {' '}Your numbers = Rehab Calc line-item engine. National = area × national $/sf benchmark (mid-Atlantic, data-enrichment). Photo line uses pic-rehab’s overall condition.
+              ? `Offer math used ${money(r.rehabUsed)} (your Rehab Calc estimates).`
+              : ‘Enter property condition above (or upload photos) to drive the rehab number into the offer.’}
+            {‘ ‘}Line-by-line breakdown shows what you selected in Rehab Calc by system and condition. National per-system benchmarks pending (Remodeling Magazine data).
           </p>
 
           {/* Per-line: human condition + $ (your numbers) vs photo-assessed condition */}
@@ -1655,25 +1626,17 @@ function Results({ r }) {
               <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Line-by-line — your condition &amp; $ vs the photo read</summary>
               <div style={{ overflowX: 'auto', marginTop: 6 }}>
                 <table style={{ borderCollapse: 'collapse', width: '100%', minWidth: 460 }}>
-                  <thead><tr>{['System', 'Your condition', 'Your $', 'National $', 'Variance'].map((hh, i) => (
+                  <thead><tr>{['System', 'Your condition', 'Your $'].map((hh, i) => (
                     <th key={i} style={{ padding: '5px 8px', background: '#1E2A45', color: '#fff', fontSize: 11, textAlign: i === 0 ? 'left' : 'right' }}>{hh}</th>
                   ))}</tr></thead>
                   <tbody>
-                    {r.rehabBreakdown.filter(li => li.id !== 'holding').map((li, i) => {
-                      const natl = r.lineItemNationals?.find(n => n.id === li.id);
-                      const variance = natl?.nationalCost ? Math.round(((li.total - natl.nationalCost) / natl.nationalCost) * 100) : null;
-                      return (
-                        <tr key={li.id} style={{ background: i % 2 ? '#f7f9fd' : '#fff' }}>
-                          <td style={{ padding: '5px 8px', fontWeight: 600 }}>{li.label}</td>
-                          <td style={{ padding: '5px 8px', textAlign: 'right' }}>{li.condition}</td>
-                          <td style={{ padding: '5px 8px', textAlign: 'right', fontWeight: 600 }}>{money(li.total)}</td>
-                          <td style={{ padding: '5px 8px', textAlign: 'right', color: '#6b7280' }}>{natl?.nationalCost ? money(natl.nationalCost) : '—'}</td>
-                          <td style={{ padding: '5px 8px', textAlign: 'right', color: variance && variance < -20 ? '#dc2626' : variance && variance > 20 ? '#ea580c' : '#059669', fontWeight: 600 }}>
-                            {variance !== null ? `${variance > 0 ? '+' : ''}${variance}%` : '—'}
-                          </td>
-                        </tr>
-                      );
-                    })}
+                    {r.rehabBreakdown.filter(li => li.id !== 'holding').map((li, i) => (
+                      <tr key={li.id} style={{ background: i % 2 ? '#f7f9fd' : '#fff' }}>
+                        <td style={{ padding: '5px 8px', fontWeight: 600 }}>{li.label}</td>
+                        <td style={{ padding: '5px 8px', textAlign: 'right' }}>{li.condition}</td>
+                        <td style={{ padding: '5px 8px', textAlign: 'right', fontWeight: 600 }}>{money(li.total)}</td>
+                      </tr>
+                    ))}
                   </tbody>
                 </table>
               </div>
