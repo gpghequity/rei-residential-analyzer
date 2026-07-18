@@ -31,17 +31,21 @@ export function runStorageDeal(dealInputs) {
     }
   }
 
+  // Group B = seller note. The Math Bible defines EXACTLY 2 Group B scenarios
+  // (one per DSCR lens), NOT 6. The old code fanned Group B across the three
+  // owner-equity treatments (sunk/io/amort), inflating the scenario count to 14.
+  // The Bible (STORAGE.scenarios groupB_sellerNote_1_25 / _1_15) and
+  // META.critical_rules ("exactly 10") say Group B is 2. In a seller-note
+  // structure the buyer's equity is sunk, so equityCost is 0.
   for (const lens of lenses) {
-    for (const treatment of treatments) {
-      const result = storage.groupB_maxPurchase(noi, lens, rehab)
-      const equityCost = storage.ownerEquityCost(result.equityAmount, treatment)
-      const pocket = storage.pocketCash(noi, 0, result.sellerAnnualDS, equityCost, 0)
-      const rampResult = result.requiresRampTest ? ramp.rampTest(noi, result.sellerAnnualDS) : null
-      const sellerLoan = result.maxPurchase * 0.75
-      const entryCap = noi / result.maxPurchase
-      const sunsetResult = sunset.sunsetTest(sellerLoan, noi, entryCap)
-      scenarios.push({ ...result, treatment, equityCost, pocket, rampResult, sunsetResult })
-    }
+    const result = storage.groupB_maxPurchase(noi, lens, rehab)
+    const equityCost = storage.ownerEquityCost(result.equityAmount, 'sunk')
+    const pocket = storage.pocketCash(noi, 0, result.sellerAnnualDS, equityCost, 0)
+    const rampResult = result.requiresRampTest ? ramp.rampTest(noi, result.sellerAnnualDS) : null
+    const sellerLoan = result.maxPurchase * 0.75
+    const entryCap = noi / result.maxPurchase
+    const sunsetResult = sunset.sunsetTest(sellerLoan, noi, entryCap)
+    scenarios.push({ ...result, treatment: 'sunk', equityCost, pocket, rampResult, sunsetResult })
   }
 
   for (const lens of lenses) {

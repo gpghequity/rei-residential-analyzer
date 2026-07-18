@@ -38,7 +38,9 @@ Baby Analyzer talks to other tools **only via stable contracts**, never code:
 
 ## Drift policy
 
-Drift between Baby Analyzer's math and the source (Math Bible / Fast Calc) is **acceptable and expected**. It is the cost of bulletproof isolation. Periodic drift audits surface differences when they matter; the operator decides whether to re-port.
+**Zero drift. There is no acceptable drift.** Every underwriting number this tool uses is read from the live Math Bible (`https://shared-underwriting-standards.vercel.app/bible.json`) at launch and before every calculation. This tool stores no underwriting constant of its own. If the Bible cannot be reached, the tool **refuses to calculate** rather than fall back to a stored number — a stale number reaching a live deal is worse than no number. Any divergence between this tool's output and the Bible is a **defect to be fixed**, not a tolerated cost.
+
+> Superseded 2026-07-17. The prior policy read *"Drift between Baby Analyzer's math and the source is acceptable and expected."* That sentence was the documented root cause of four months of divergence — it authorized, in writing, the exact drift this platform exists to eliminate. It is retired.
 
 ## Tabs
 

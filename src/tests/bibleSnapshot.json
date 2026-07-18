@@ -1,0 +1,845 @@
+{
+  "bibleVersion": "11.25",
+  "contentHash": "1d14bcc2543d2a17",
+  "standards": {
+    "CLOSING_COSTS": {
+      "appraisalFee": 4000,
+      "bankPointsPct": 0.01,
+      "buyerClosingCostsPct": 0.02,
+      "environmentalFee": 3500,
+      "escrowSetupMonths": 2,
+      "inspectionFee": 400,
+      "insuranceSetupFee": 400,
+      "legalFee": 3000,
+      "lenderFeesPct": 0.01,
+      "prepaidInterestPct": 0.005,
+      "surveyFee": 800
+    },
+    "COMMERCIAL": {
+      "amortizationYears": 25,
+      "assetClass": "commercial",
+      "collectionLossPct": 0.02,
+      "dscr": {
+        "standard": 1.25,
+        "stretch": 1.15
+      },
+      "leaseAuditRequired": true,
+      "lenderDscrFloor": 1.2,
+      "lenderTermYears": 5,
+      "ltv": 0.75,
+      "mgCamRecoveryShare": 0.5,
+      "mixedUseFormula": "blended_cap = (capRate_A * sqft_A + capRate_B * sqft_B) / total_sqft",
+      "mortgageRate": 0.0725,
+      "mvmPads": {
+        "mvm20": 0.2,
+        "mvm30": 0.3,
+        "standard": 0
+      },
+      "nnnFlowThrough": true,
+      "propMgmtPctDefault": 0.05,
+      "repositionVacancyThreshold": 0.2,
+      "reserves": {
+        "capexPsfDefault": 0.3,
+        "medicalTiLcPsf": 1.25,
+        "oldBuildingCapexPsf": 0.5,
+        "oldBuildingYearCutoff": 1990,
+        "tiLcPsfDefault": 0.75
+      },
+      "returnTargets": {
+        "high": 0.18,
+        "low": 0.1
+      },
+      "subclassAliases": {
+        "industrial_flex": "industrialFlex",
+        "industrial_warehouse": "warehouse",
+        "mixed_use": "mixedUse",
+        "office_general": "officeGeneral",
+        "office_medical": "officeMedical",
+        "other": "other",
+        "restaurant": "restaurant",
+        "retail_single": "singleTenant",
+        "retail_strip": "retailStrip",
+        "self_serve_carwash": "carwash",
+        "special_purpose": "specialPurpose"
+      },
+      "subclassLabels": {
+        "carwash": "Self-serve car wash",
+        "industrialFlex": "Industrial — flex / light",
+        "mixedUse": "Mixed-use (retail + office/residential)",
+        "officeGeneral": "Office — general / multi-tenant",
+        "officeMedical": "Office — medical (MOB)",
+        "other": "Other / generic commercial",
+        "restaurant": "Restaurant / QSR",
+        "retailStrip": "Retail — strip / multi-tenant",
+        "singleTenant": "Retail — single-tenant NNN",
+        "specialPurpose": "Special purpose (bank, daycare, vet)",
+        "warehouse": "Industrial — warehouse / distribution"
+      },
+      "subclasses": {
+        "carwash": {
+          "capHigh": 0.11,
+          "capLow": 0.075,
+          "capRate": 0.095,
+          "comments": "High-margin, service. Equipment-heavy — high capex reserve.",
+          "expenseFloor": 0.35,
+          "vacancyFloor": 0
+        },
+        "industrialFlex": {
+          "capHigh": 0.075,
+          "capLow": 0.055,
+          "capRate": 0.075,
+          "comments": "3PL, last-mile. Strong fundamentals most metros.",
+          "expenseFloor": 0.15,
+          "vacancyFloor": 0.08
+        },
+        "mixedUse": {
+          "capHigh": 0.09,
+          "capLow": 0.065,
+          "capRate": null,
+          "comments": "Blended by tenant mix — see rei-mixed-use for per-asset blend valuation.",
+          "expenseFloor": 0.35,
+          "vacancyFloor": 0.1
+        },
+        "officeGeneral": {
+          "capHigh": 0.105,
+          "capLow": 0.075,
+          "capRate": 0.085,
+          "comments": "Class A/B/C varies. Office vacancy elevated post-2020; underwrite 12-18% min.",
+          "expenseFloor": 0.4,
+          "vacancyFloor": 0.12
+        },
+        "officeMedical": {
+          "capHigh": 0.08,
+          "capLow": 0.065,
+          "capRate": 0.085,
+          "comments": "Longer leases. Heavy buildout on renewal ($50-150/SF TI common).",
+          "expenseFloor": 0.32,
+          "vacancyFloor": 0.08
+        },
+        "other": {
+          "capHigh": 0.1,
+          "capLow": 0.06,
+          "capRate": null,
+          "comments": "Generic commercial defaults — override based on local comps.",
+          "expenseFloor": 0.25,
+          "vacancyFloor": 0.05
+        },
+        "restaurant": {
+          "capHigh": 0.08,
+          "capLow": 0.055,
+          "capRate": 0.1,
+          "comments": "Triple-net or proprietor. QSR/national = tight cap; independent = wider.",
+          "expenseFloor": 0.1,
+          "vacancyFloor": 0
+        },
+        "retailStrip": {
+          "capHigh": 0.085,
+          "capLow": 0.065,
+          "capRate": 0.08,
+          "comments": "Single-tenant or multi-tenant. Watch top-tenant concentration.",
+          "expenseFloor": 0.3,
+          "vacancyFloor": 0.1
+        },
+        "singleTenant": {
+          "capHigh": 0.075,
+          "capLow": 0.055,
+          "capRate": 0.07,
+          "comments": "Credit tenant preferred. Cap is a function of tenant credit + lease term.",
+          "expenseFloor": 0.1,
+          "vacancyFloor": 0.05
+        },
+        "specialPurpose": {
+          "capHigh": 0.11,
+          "capLow": 0.07,
+          "capRate": null,
+          "comments": "Case-by-case. Re-tenanting risk; discount cap for time-to-fill.",
+          "expenseFloor": 0.25,
+          "vacancyFloor": null
+        },
+        "warehouse": {
+          "capHigh": 0.07,
+          "capLow": 0.05,
+          "capRate": 0.065,
+          "comments": "Modern specs premium. Cap rates compressed since 2020.",
+          "expenseFloor": 0.1,
+          "vacancyFloor": 0.05
+        }
+      },
+      "tenantConcentrationThreshold": 0.4,
+      "topTenantRolloverWarnMonths": 12,
+      "waltMinYears": 3
+    },
+    "GLOBAL": {
+      "arvMinComps": 3,
+      "arvPercentile": 0.4,
+      "closingCostsFlatAmount": 2000,
+      "commissionDefaultPercent": 0.03,
+      "commissionMinimum": 4000,
+      "compSourcePriority": [
+        "automatic",
+        "uploaded",
+        "manual"
+      ],
+      "daysOfIncomeHistory": 12,
+      "holdingCostPerMonth": 350,
+      "holdingCostPercentMonthly": 0.01,
+      "holdingMonthsDefault": 6,
+      "incomeVerification": "current_verified_only",
+      "insuranceMonthly": 1200,
+      "pocketCashFloor": 10000,
+      "sellingCostsPercent": 0.08,
+      "taxesMonthly": 0,
+      "titleEscrowRecordingPercent": 0.005,
+      "transferTaxPercent": 0.01,
+      "wholesaleFeeAmount": 10000
+    },
+    "GROWTH": {
+      "expenseAnnual": 0.0235,
+      "noiConservative": 0.03,
+      "noiStretch": 0.05
+    },
+    "IOS": {
+      "amortizationYears": 25,
+      "assetClass": "ios",
+      "capRateRange": {
+        "max": 0.07,
+        "min": 0.07
+      },
+      "description": "Fenced gravel/asphalt yards for equipment storage",
+      "dscr": 1.25,
+      "expenseRatio": 0.2,
+      "ltv": 0.75,
+      "mortgageRate": 0.0725,
+      "noiMultiplier": 14
+    },
+    "LENDING": {
+      "assetClass": "lending",
+      "interestRate": 0.12,
+      "loanAmount": "ARV based",
+      "ltv": {
+        "max": 0.75
+      },
+      "ltvByAssetType": {
+        "2-4 Unit": 0.8,
+        "Commercial": 0.7,
+        "Fix & Flip": 0.85,
+        "Flip": 0.85,
+        "MHP": 0.7,
+        "Mixed-Use": 0.7,
+        "Multi-Family 5+": 0.75,
+        "Self Storage": 0.7,
+        "Single Family": 0.8
+      },
+      "ltvByAssetTypeDefault": 0.75,
+      "pointsPercent": 0.02,
+      "requiredDocs": [
+        "personal_guarantee",
+        "lien_position_confirmed",
+        "title_commitment",
+        "proof_of_funds"
+      ],
+      "stressTestDecisionRule": "If -25% ARV miss loses the lender money (first lien recovery breaks), WALK unless borrower has documented liquidity > shortfall",
+      "stressTests": [
+        {
+          "label": "-10% ARV miss",
+          "miss": -0.1
+        },
+        {
+          "label": "-20% ARV miss",
+          "miss": -0.2
+        },
+        {
+          "label": "-25% ARV miss",
+          "miss": -0.25
+        },
+        {
+          "label": "-30% ARV miss",
+          "miss": -0.3
+        },
+        {
+          "label": "-50% ARV miss",
+          "miss": -0.5
+        }
+      ],
+      "term": "6-12 months",
+      "transactional": {
+        "closingCostEstimatePctSource": "CLOSING_COSTS.buyerClosingCostsPct",
+        "minGrossSpread": 5000
+      }
+    },
+    "META": {
+      "authority": "Stephen Franco / GPGH Equities / Gorilla Real Estate",
+      "bibleSourceFile": "REI_PLATFORM_BIBLE_v11_25.{md,json,yaml}",
+      "bibleVersion": "REI_PLATFORM_BIBLE_v11_25",
+      "critical_rules": [
+        "ALL TOOLS READ THIS FILE ON EVERY RUN",
+        "Do not hardcode numbers. Read from this Bible.",
+        "Rehab: $15/SF cosmetic base × condition multiplier (not $110/SF studs)",
+        "Seller finance: $100k buyer cash, 5%, 25yr amort, 15yr balloon",
+        "Four offer tiers: List, Direct (−$10k), Fast Cash (−$20k), Cash MAO (70%)",
+        "Residential pads: 0%, 15%, 30% (not 20%, 33%)",
+        "Residential DSCR: 1.25 only (not 1.15)",
+        "Storage/commercial scenario matrix: exactly 10 (6 conventional groupA + 2 seller-note groupB + 2 seller-kicker groupC)",
+        "Retired: B1, B2, B3 legacy rows (superseded by the groupA/B/C 10-scenario matrix)",
+        "NOI multipliers: Storage 12.5x, MHP 12.5x, RV 13x, IOS 14x"
+      ],
+      "date_last_updated": "2026-07-13",
+      "integrations": [
+        "rei-rehab-calc (rehab systems)",
+        "rei-auto-offer (four-tier offers + seller finance)",
+        "Baby Analyzer",
+        "Lender Command",
+        "Deal Analyzer",
+        "Net Sheet",
+        "Comp Snapshot",
+        "Lending Intake",
+        "Report Engine",
+        "rei-risk-intelligence",
+        "rei-inspection",
+        "rei-appraisal",
+        "all 35+ REI platform services"
+      ],
+      "version": "11.25"
+    },
+    "MHP": {
+      "amortizationYears": 25,
+      "assetClass": "mhp",
+      "capRateRange": {
+        "max": 0.1,
+        "min": 0.085
+      },
+      "collectionLossPct": 0.02,
+      "dscr": 1.25,
+      "expenseRatio": 0.6,
+      "infillExecutionRisk": "required",
+      "ltv": 0.75,
+      "managementPct": 0.07,
+      "mortgageRate": 0.0725,
+      "mvmPads": {
+        "mvm20": 0.2,
+        "mvm30": 0.3,
+        "standard": 0
+      },
+      "noiMultiplier": 12.5,
+      "padRentStability": "required",
+      "parkBurdenModes": [
+        "park-paid",
+        "submeter"
+      ],
+      "pohHeavyThreshold": 0.25,
+      "pohOpexPad": 0.3,
+      "pohVacancyPct": 0.1,
+      "pohVacancyThreshold": 0.2,
+      "pohVsToHSplit": "required",
+      "sellerFi": {
+        "amortYears": 25,
+        "pct": 1,
+        "rate": 0.05
+      },
+      "seniorTerm": 10,
+      "tohVacancyPct": 0.05,
+      "utilityDefaults": {
+        "electric": {
+          "costAnnual": null,
+          "mode": "tenant-direct",
+          "recoveryPct": null
+        },
+        "gas": {
+          "costAnnual": null,
+          "mode": "tenant-direct",
+          "recoveryPct": null
+        },
+        "sewer": {
+          "costAnnual": null,
+          "mode": "park-paid",
+          "recoveryPct": null
+        },
+        "trash": {
+          "costAnnual": null,
+          "mode": "park-paid",
+          "recoveryPct": null
+        },
+        "water": {
+          "costAnnual": null,
+          "mode": "park-paid",
+          "recoveryPct": null
+        }
+      },
+      "utilityKeys": [
+        "water",
+        "sewer",
+        "trash",
+        "electric",
+        "gas"
+      ],
+      "utilityRedFlags": {
+        "ownerPays": "MAJOR FLAG",
+        "regulatoryRisk": "MAJOR FLAG"
+      },
+      "vacantLotThreshold": 0.15
+    },
+    "OFFER_TIERS_V9": {
+      "description": "Three-tier offer structure: Retail (list), Direct Investor (−$10k), Fastest Cash (−$20k)",
+      "fast_cash_fee": 20000,
+      "fast_cash_pct": 0.1,
+      "flipper_fee": 10000,
+      "flipper_pct": 0.05,
+      "small_deal": 30000
+    },
+    "OFFER_TYPES": {
+      "cash": "Cash offer, no financing",
+      "list_after_repairs": "List property after repairs complete",
+      "list_as_is": "List property as-is for retail sale (ARV - rehab * 0.93)",
+      "terms": "Seller-financed offer (10% down, 5% rate, 7yr balloon, 30yr amort)",
+      "wholesale": "Assign to end buyer"
+    },
+    "OFFER_VERDICTS": {
+      "KILL": "Deal has unreconcilable issues. Do not pursue under any terms.",
+      "NEGOTIATE": "Deal works at higher price or different terms. Counter or renegotiate.",
+      "PASS": "Deal does not meet acquisition criteria. Do not pursue.",
+      "PURSUE": "Deal meets criteria. Recommended action: make offer.",
+      "TENTATIVE": "Deal may work but requires verified T-12 + rent roll + occupancy confirmation."
+    },
+    "REFI": {
+      "amortizationYears": 15,
+      "mortgageRate": 0.0725
+    },
+    "REHAB": {
+      "description": "All rehab pricing from REI Platform Bible v11.23 Section 5 (source of truth for rehab costs)",
+      "systems": {
+        "appliances": {
+          "tiers": {
+            "missing": 1800,
+            "modern": 400,
+            "new": 0,
+            "old": 1500,
+            "semiModern": 700
+          },
+          "unit": "per_unit"
+        },
+        "basement": {
+          "amounts": [
+            0,
+            500,
+            1500,
+            2500,
+            5000,
+            8000,
+            10000
+          ],
+          "unit": "dropdown"
+        },
+        "cosmetic": {
+          "baseCost": 15,
+          "description": "Paint, flooring, cosmetics",
+          "unit": "per_sqft"
+        },
+        "electrical": {
+          "amounts": [
+            0,
+            500,
+            1000,
+            2000,
+            4000,
+            6000,
+            8000
+          ],
+          "unit": "dropdown"
+        },
+        "exterior": {
+          "amounts": [
+            0,
+            500,
+            1500,
+            2500,
+            5000,
+            8000,
+            10000
+          ],
+          "unit": "dropdown"
+        },
+        "fullBath": {
+          "tiers": {
+            "missing": 6000,
+            "modern": 1500,
+            "new": 0,
+            "old": 4000,
+            "semiModern": 2500
+          },
+          "unit": "per_bath"
+        },
+        "furnace": {
+          "amounts": [
+            0,
+            1000,
+            2000,
+            3000,
+            6000,
+            10000
+          ],
+          "unit": "dropdown"
+        },
+        "halfBath": {
+          "tiers": {
+            "missing": 4500,
+            "modern": 800,
+            "new": 0,
+            "old": 2500,
+            "semiModern": 1500
+          },
+          "unit": "per_bath"
+        },
+        "holding": {
+          "amounts": [
+            0,
+            200,
+            500,
+            1000,
+            1500,
+            3000,
+            5000
+          ],
+          "description": "Carrying costs",
+          "unit": "per_month"
+        },
+        "kitchen": {
+          "tiers": {
+            "missing": 10000,
+            "modern": 2000,
+            "new": 0,
+            "old": 7000,
+            "semiModern": 4000
+          },
+          "unit": "per_unit"
+        },
+        "plumbing": {
+          "amounts": [
+            0,
+            1000,
+            2000,
+            3000,
+            4000,
+            5000,
+            6000,
+            7000,
+            8000
+          ],
+          "unit": "dropdown"
+        },
+        "porch": {
+          "amounts": [
+            0,
+            500,
+            1500,
+            2500,
+            5000,
+            8000,
+            10000
+          ],
+          "unit": "dropdown"
+        },
+        "roof": {
+          "baseCost": 7,
+          "description": "Roofing",
+          "unit": "per_sqft"
+        },
+        "siding": {
+          "baseCost": 12,
+          "description": "Siding replacement",
+          "unit": "per_sqft"
+        },
+        "structure": {
+          "amounts": [
+            0,
+            500,
+            1500,
+            2500,
+            5000,
+            8000,
+            10000
+          ],
+          "unit": "dropdown"
+        },
+        "threeQtrBath": {
+          "tiers": {
+            "missing": 5000,
+            "modern": 1000,
+            "new": 0,
+            "old": 3000,
+            "semiModern": 2000
+          },
+          "unit": "per_bath"
+        },
+        "windows": {
+          "baseCost": 350,
+          "description": "Window replacement",
+          "unit": "per_window"
+        }
+      },
+      "tiers": {
+        "drywallNeeded": 2,
+        "missing": 1,
+        "modern": 0.25,
+        "new": 0,
+        "old": 0.8,
+        "semiModern": 0.5,
+        "studdedOut": 3
+      }
+    },
+    "RESIDENTIAL": {
+      "amortizationYears": 30,
+      "arvMultiplier": 0.7,
+      "assetClass": "residential",
+      "buyerConcessionPercent": 0.02,
+      "cashAsIs": {
+        "description": "Cash offer for as-is property",
+        "formula": "ARV × 0.70 - rehab_estimate",
+        "requiresARV": true
+      },
+      "closingCostsPercent": 0.08,
+      "conditionTiers": {
+        "drywallNeeded": 2,
+        "missing": 1,
+        "modern": 0.25,
+        "new": 0,
+        "old": 0.8,
+        "semiModern": 0.5,
+        "studdedOut": 3
+      },
+      "dscr": 1.25,
+      "effectiveCosmetic_PSF": {
+        "drywallNeeded": 30,
+        "missing": 15,
+        "modern": 3.75,
+        "new": 0,
+        "old": 12,
+        "semiModern": 7.5,
+        "studdedOut": 45
+      },
+      "expectedDaysOnMarketRange": {
+        "high": 90,
+        "low": 30
+      },
+      "expensePads": {
+        "default": "standard",
+        "harsh": 0.3,
+        "light": 0,
+        "standard": 0.15
+      },
+      "hardModeFormula": "(NOI / 1.25 - rehab - closing) / (0.8 * K + rate)",
+      "listAfterRepairs": {
+        "description": "List property after repairs complete",
+        "formula": "ARV - commission_on_ARV",
+        "requiresARV": true
+      },
+      "listAsIs": {
+        "description": "List property as-is for retail sale",
+        "formula": "ARV - (rehab_estimate * 0.93)",
+        "requiresARV": true
+      },
+      "listingAsIsHaggleFactor": 0.93,
+      "listingRepairedARVRealization": 0.95,
+      "ltv": 0.8,
+      "mortgageRate": 0.07,
+      "ownerFinanceRate": 0.08,
+      "returnTargets": {
+        "high": 0.18,
+        "low": 0.1
+      },
+      "sellerFinance": {
+        "amortizationYears": 25,
+        "balloonYears": 15,
+        "buyerCashFixed": 100000,
+        "description": "Standard seller-finance structure: $100k buyer cash, seller fills equity gap",
+        "interestRate": 0.05,
+        "kSeller": 0.07057
+      },
+      "subclassDefaults": {
+        "mf": {
+          "capRate": null,
+          "comments": "Uses DSCR ladder, not cap rate",
+          "dscr": 1.25
+        },
+        "rental": {
+          "capRate": null,
+          "comments": "Uses DSCR ladder, not cap rate",
+          "dscr": 1.25
+        },
+        "sfr": {
+          "capRate": null,
+          "comments": "Uses DSCR ladder, not cap rate",
+          "dscr": 1.25
+        }
+      },
+      "termsOffer": {
+        "amortizationYears": 25,
+        "balloonYears": 15,
+        "description": "Seller-financed offer (Bible v11.23 §4.8: $100k buyer cash, 5%, 25yr amort, 15yr balloon)",
+        "downPaymentPercent": 0.1,
+        "formula": "seller_note_principal = (NOI / 1.25 - bank_DS - closing); monthly_payment = principal * K_SELLER(5%, 25yr)",
+        "interestRate": 0.05
+      }
+    },
+    "RV_PARK": {
+      "amortizationYears": 25,
+      "assetClass": "rv_park",
+      "capRateRange": {
+        "max": 0.08,
+        "min": 0.075
+      },
+      "description": "RV parks with transient guest mix",
+      "dscr": 1.25,
+      "expenseRatio": 0.55,
+      "ltv": 0.75,
+      "mortgageRate": 0.0725,
+      "noiMultiplier": 13
+    },
+    "STORAGE": {
+      "amortizationYears": 25,
+      "assetClass": "storage",
+      "dscr": {
+        "standard": 1.25,
+        "stretch": 1.15
+      },
+      "expenseFloor": 0.35,
+      "expenseRatio": 0.35,
+      "ltv": 0.75,
+      "mortgageRate": 0.0725,
+      "noiMultiplier": 12.5,
+      "pitiReserveMonths": 3,
+      "pocketCashFloor": 10000,
+      "returnTargets": {
+        "high": 0.18,
+        "low": 0.1
+      },
+      "scenarios": {
+        "groupA_v1_1_15": {
+          "bankOnly": true,
+          "dscr": 1.15,
+          "equityPercent": 0.25,
+          "equityType": "sunk",
+          "name": "Bank Only (1.15x DSCR)"
+        },
+        "groupA_v1_1_25": {
+          "bankOnly": true,
+          "dscr": 1.25,
+          "equityPercent": 0.25,
+          "equityType": "sunk",
+          "name": "Bank Only (1.25x DSCR)"
+        },
+        "groupA_v2_1_15": {
+          "bankPercent": 0.75,
+          "dscr": 1.15,
+          "equityPercent": 0.25,
+          "equityRate": 0.08,
+          "equityType": "interest_only",
+          "name": "Bank + IO Equity (1.15x DSCR)"
+        },
+        "groupA_v2_1_25": {
+          "bankPercent": 0.75,
+          "dscr": 1.25,
+          "equityPercent": 0.25,
+          "equityRate": 0.08,
+          "equityType": "interest_only",
+          "name": "Bank + IO Equity (1.25x DSCR)"
+        },
+        "groupA_v3_1_15": {
+          "bankPercent": 0.75,
+          "dscr": 1.15,
+          "equityPercent": 0.25,
+          "equityRate": 0.08,
+          "equityTerm": 25,
+          "equityType": "amortized",
+          "name": "Bank + Amortized Equity (1.15x DSCR)"
+        },
+        "groupA_v3_1_25": {
+          "bankPercent": 0.75,
+          "dscr": 1.25,
+          "equityPercent": 0.25,
+          "equityRate": 0.08,
+          "equityTerm": 25,
+          "equityType": "amortized",
+          "name": "Bank + Amortized Equity (1.25x DSCR)"
+        },
+        "groupB_sellerNote_1_15": {
+          "bankPercent": 0.25,
+          "dscr": 1.15,
+          "name": "Seller Note (1.15x DSCR)",
+          "requiresSunsetTest": true,
+          "sellerNotePercent": 0.75,
+          "sellerNoteRate": 0.05,
+          "sellerNoteTerm": 10
+        },
+        "groupB_sellerNote_1_25": {
+          "bankPercent": 0.25,
+          "dscr": 1.25,
+          "name": "Seller Note (1.25x DSCR)",
+          "requiresSunsetTest": true,
+          "sellerNotePercent": 0.75,
+          "sellerNoteRate": 0.05,
+          "sellerNoteTerm": 10
+        },
+        "groupC_sellerKicker_1_15": {
+          "bankPercent": 0.25,
+          "dscr": 1.15,
+          "kickerPercent": 0.2,
+          "name": "Seller Note + Kicker (1.15x DSCR)",
+          "requiresSunsetTest": true,
+          "sellerNotePercent": 0.75,
+          "sellerNoteRate": 0.05,
+          "sellerNoteTerm": 10
+        },
+        "groupC_sellerKicker_1_25": {
+          "bankPercent": 0.25,
+          "dscr": 1.25,
+          "kickerPercent": 0.2,
+          "name": "Seller Note + Kicker (1.25x DSCR)",
+          "requiresSunsetTest": true,
+          "sellerNotePercent": 0.75,
+          "sellerNoteRate": 0.05,
+          "sellerNoteTerm": 10
+        }
+      },
+      "sellerFinance": {
+        "amortYears": 25,
+        "rate": 0.05
+      },
+      "sellerKicker": {
+        "capCumulative": 50000,
+        "pctDefault": 0.2,
+        "windowYears": 5
+      },
+      "stabilizedNOIFloor": 40000,
+      "workingCapitalPct": 0.25
+    },
+    "UI": {
+      "internalAdjustableFields": [
+        "mortgageRate",
+        "dscr",
+        "expensePad",
+        "ltv",
+        "capRate",
+        "wholesaleFee",
+        "commissionPercent",
+        "arvPercentile",
+        "holdingCostPercent"
+      ],
+      "publicDisplayFields": [
+        "ARV",
+        "Rehab Estimate",
+        "Your Cash Offer",
+        "Terms Offer",
+        "List-As-Is Offer",
+        "Next Steps"
+      ],
+      "publicHiddenFields": [
+        "DSCR",
+        "LTV",
+        "Expense Pad",
+        "Mortgage Rate",
+        "Pocket Cash Calculation",
+        "Stress Tests"
+      ]
+    }
+  }
+}

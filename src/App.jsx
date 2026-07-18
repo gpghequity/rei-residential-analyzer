@@ -77,7 +77,7 @@ export default function App() {
       <footer>
         <div className="footer-copy">© 2026 Projects with a Purpose LLC · Powered by REI Platform</div>
         <div>REI Residential Analyzer v{VERSION} · Released {BUILD_DATE}</div>
-        <div>Math Bible v3.1 (live, external resource) · Calls: Doc Extractor · Photo Analyzer · Data Enrichment · Market Risk Engine. No hardcoded numbers. Zero drift.</div>
+        <div>Underwriting standards from the REI Platform Math Bible · Calls: Doc Extractor · Photo Analyzer · Data Enrichment · Market Risk Engine.</div>
         <div className="footer-disclaimer">Estimates only. Operator assumes all underwriting and decision responsibility. Verify numbers independently before any offer or transaction.</div>
       </footer>
     </div>

@@ -1,10 +1,20 @@
 // PORTED FROM docs/COMMERCIAL_BRIEF_V1.md (V1 spec) on 2026-05-13
 // V1 scope: current contract rent only, single $/SF reserves, V2 deferred per brief.
 //
-// Self-contained per the platform isolation rule: own constants, own
-// annualLoanConstant, own helpers. No imports from storage.js / mhp.js /
-// residential.js. Drift is acceptable per the platform's bulletproof-
-// modularity rule.
+// Self-contained HELPERS only (own annualLoanConstant, no imports from
+// storage.js / mhp.js / residential.js). That part of the isolation rule stays.
+//
+// The DEFAULT_* underwriting constants below are a KNOWN DEFECT slated for
+// removal: a math module must not own a rate, amort, DSCR, LTV, fee, or pad.
+// They are being migrated to live Math Bible reads (values arrive via
+// `assumptions`, built from https://shared-underwriting-standards.vercel.app/bible.json;
+// a missing value throws instead of falling back). See rei-fast-calc/src/math/commercial.js
+// for the finished pattern and COMMERCIAL_BRIEF_V1.md "SUPERSEDED 2026-07-17".
+//
+// Drift is NOT acceptable. The retired "drift is acceptable per the platform's
+// bulletproof-modularity rule" policy is exactly how DEFAULT_LENDER_RATE below
+// came to say 7% / 30yr while the Bible says 7.25% / 25yr — an 8.64% overpay on
+// every commercial deal. That policy is dead.
 
 // ── Lender + reserve defaults (all user-overridable in UI) ─────────────
 export const DEFAULT_DSCR = 1.25

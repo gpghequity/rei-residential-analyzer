@@ -19,7 +19,7 @@
     "multer": "^1.4.5-lts.1",
     "react": "^19.2.5",
     "react-dom": "^19.2.5",
-    "shared-underwriting-standards": "github:gpghequity/shared-underwriting-standards",
+    "shared-underwriting-standards": "github:gpghequity/shared-underwriting-standards#427a9d2",
     "unzipper": "^0.12.3"
   },
   "devDependencies": {

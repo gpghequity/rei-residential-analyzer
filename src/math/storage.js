@@ -7,7 +7,8 @@
 // at the UI layer using these Math Bible primitives. Fast Calc V2.6's offer-based
 // CoC fix is intentionally NOT backported — Math Bible's maxPurchase-based math
 // produces the more conservative ("tougher") result, which is what Baby Analyzer
-// is for. Drift is acceptable per the platform isolation rule.
+// is for. (Code isolation — no cross-tab imports — stays; but drift in the NUMBERS
+// is NOT acceptable: every constant here reads from the live Bible via loadConstants.)
 
 import { loadConstants } from './constants.js'
 
@@ -99,7 +100,7 @@ export function groupA_equityRequirement(maxPurchase, bankDS, annualOpEx) {
   const lineItems = {
     downPayment:    maxPurchase * (1 - C.LTV_STORAGE),
     points:         bankLoan * C.BANK_POINTS_PCT,
-    lenderFees:     C.BANK_LENDER_FEES,
+    lenderFees:     bankLoan * C.LENDER_FEES_PCT,   // Bible lenderFeesPct (1% of loan), not a flat $2,500
     legal:          C.LEGAL,
     titleInsurance: bankLoan * C.TITLE_PCT,
     environmental:  C.ENVIRONMENTAL,

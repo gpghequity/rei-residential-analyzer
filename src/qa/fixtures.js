@@ -73,12 +73,12 @@ export const FIXTURES = [
   {
     id: 'commercial', label: 'Commercial (Retail/Office/Warehouse)', assetClass: 'Commercial',
     type: 'commercial', engine: 'matrix', noi: 200000,
-    bibleSection: 'Commercial income engine (75/25 @ 7%/30yr)',
+    bibleSection: 'Commercial income engine (75/25 @ 7.25%/25yr)',
     expected: {
-      ltv: 0.75, rate: 0.07, amort: 30, dscrLens: [1.25, 1.15],
-      maxPurchase: 2672000, aggressive: 2904000, offer: 2672000, bank: 2004000, borrower: 668000, pocket: 40008, status: 'CLEARS_FLOOR'
+      ltv: 0.75, rate: 0.0725, amort: 25, dscrLens: [1.25, 1.15],
+      maxPurchase: 2459000, aggressive: 2673000, offer: 2459000, bank: 1844250, borrower: 614750, pocket: 40036, status: 'CLEARS_FLOOR'
     },
-    formula: 'P_max = NOI ÷ (1.25 × 0.75 × K_commercial[7%/30yr])'
+    formula: 'P_max = NOI ÷ (1.25 × 0.75 × K_commercial[7.25%/25yr])'
   },
 
   // ─── MHP / RV ───────────────────────────────────────────────────────────────
@@ -99,10 +99,10 @@ export const FIXTURES = [
     type: 'mixed_use', engine: 'matrix', noi: 150000,
     bibleSection: 'Commercial income engine on blended NOI (full split on Mixed Use tab)',
     expected: {
-      ltv: 0.75, rate: 0.07, amort: 30, dscrLens: [1.25, 1.15],
-      maxPurchase: 2004000, aggressive: 2178000, offer: 2004000, bank: 1503000, borrower: 501000, pocket: 30006, status: 'CLEARS_FLOOR'
+      ltv: 0.75, rate: 0.0725, amort: 25, dscrLens: [1.25, 1.15],
+      maxPurchase: 1844000, aggressive: 2005000, offer: 1844000, bank: 1383000, borrower: 461000, pocket: 30043, status: 'CLEARS_FLOOR'
     },
-    formula: 'P_max = NOI ÷ (1.25 × 0.75 × K_commercial[7%/30yr])'
+    formula: 'P_max = NOI ÷ (1.25 × 0.75 × K_commercial[7.25%/25yr])'
   },
 
   // ─── Land / IOS (no offer engine) ───────────────────────────────────────────

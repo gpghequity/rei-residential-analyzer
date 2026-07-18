@@ -62,7 +62,9 @@ export function bankTermsFor(typeId, C) {
       return { ltv: C.LTV_STORAGE, K: C.K_BANK_STORAGE, rateLabel: '75/25 LTV · 7.25% / 25-yr (storage/commercial income terms)' }
     case 'commercial':
     case 'mixed_use':
-      return { ltv: 0.75, K: annualLoanConstant(0.07, 30), rateLabel: '75/25 LTV · 7% / 30-yr (Math Bible commercial income-property terms)' }
+      // Bible COMMERCIAL terms: 75/25 LTV @ 7.25% / 25-yr (read live via constants).
+      // Was hardcoded 7% / 30-yr here — an ~8.6% overpay on every commercial deal.
+      return { ltv: C.LTV_COMMERCIAL, K: C.K_BANK_COMMERCIAL, rateLabel: '75/25 LTV · 7.25% / 25-yr (Math Bible commercial income-property terms)' }
     default:
       return { ltv: C.LTV_STORAGE, K: C.K_BANK_STORAGE, rateLabel: '75/25 LTV · 7.25% / 25-yr' }
   }
@@ -102,7 +104,11 @@ function buildRow(structureKey, label, dscr, noi, terms, C) {
     borrowerCost = ownerEquityCost(buyerCash, 'io')     // 8% IO on the $100k only
     sellerPayment = sellerFinance * C.K_SELLER          // seller note 5%/25yr
     balloon = sellerFinance > 0
-      ? remainingPrincipal(sellerFinance, C.RATE_SELLER, C.AMORT_SELLER, SELLER_BALLOON_YEARS)
+      // remainingPrincipal expects an annual LOAN CONSTANT as arg 2 (see
+      // sunsetTest.js which calls it with C.K_SELLER). Passing C.RATE_SELLER (0.05)
+      // understated the amortization and produced a wrong balloon on every
+      // seller-finance row.
+      ? remainingPrincipal(sellerFinance, C.K_SELLER, C.AMORT_SELLER, SELLER_BALLOON_YEARS)
       : 0
   }
 

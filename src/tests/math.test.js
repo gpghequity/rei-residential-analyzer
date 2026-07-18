@@ -100,7 +100,7 @@ describe('storage.js (Math Bible v3 port)', () => {
     const r = groupA_equityRequirement(1283000, 90000, 25000)
     expect(r.lineItems.downPayment).toBeCloseTo(320750, 0)
     expect(r.lineItems.points).toBeCloseTo(9622.5, 0) // bankLoan × 1%
-    expect(r.lineItems.appraisal).toBe(4500)
+    expect(r.lineItems.appraisal).toBe(4000) // Bible CLOSING_COSTS.appraisalFee (was hardcoded 4500)
     expect(r.lineItems.pitiReserve).toBeCloseTo(22500, 0) // 90000 / (12/3) = 22500
     expect(r.workingCapital).toBeCloseTo(6250, 0) // 25000 × 0.25
     expect(r.totalEquityRequired).toBeCloseTo(r.cashToClose + r.workingCapital, 1)
@@ -228,7 +228,7 @@ describe('scenarioEngine.js (Math Bible v3 port)', () => {
       kickerOptions: { growthRate: 0.03, pct: 0.20, cap: 50000, windowYears: 5 }
     })
     expect(result.noiResult.noi).toBeCloseTo(104400, 0)
-    expect(result.scenarios.length).toBeGreaterThan(10) // 14 total per Math Bible
+    expect(result.scenarios.length).toBe(10) // Bible: exactly 10 (A:6 + B:2 + C:2)
     expect(result.kickerProj.length).toBe(5)
   })
 

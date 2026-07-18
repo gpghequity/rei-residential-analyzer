@@ -220,16 +220,18 @@ describe('Verdict PASS via Group C', () => {
 // ─────────────────────────────────────────────────────────────────────────────
 // 6. Exactly 14 storage scenarios from runStorageDeal
 // ─────────────────────────────────────────────────────────────────────────────
-describe('scenarioEngine — exactly 14 storage scenarios', () => {
-  it('produces 14 scenarios: Group A 6 + Group B 6 + Group C 2', () => {
+describe('scenarioEngine — exactly 10 storage scenarios', () => {
+  it('produces 10 scenarios: Group A 6 + Group B 2 + Group C 2', () => {
+    // Bible META.critical_rules: "exactly 10". Group B is 2 (one per DSCR lens),
+    // NOT 6 — the old engine fanned Group B across 3 owner-equity treatments.
     const result = runStorageDeal({
       grossDollarsIn: 180000,
       sellerStatedExpensePct: 0.42,
       annualOpEx: 75600
     })
-    expect(result.scenarios.length).toBe(14)
+    expect(result.scenarios.length).toBe(10)
     expect(result.scenarios.filter(s => s.group === 'A').length).toBe(6)
-    expect(result.scenarios.filter(s => s.group === 'B').length).toBe(6)
+    expect(result.scenarios.filter(s => s.group === 'B').length).toBe(2)
     expect(result.scenarios.filter(s => s.group === 'C').length).toBe(2)
   })
 
