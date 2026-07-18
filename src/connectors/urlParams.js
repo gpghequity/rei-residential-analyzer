@@ -101,7 +101,7 @@ function parseCompsToRaw(comps) {
 }
 
 // Build a search string from the current state — for shareable links.
-// Operators may copy-paste the URL after Calculate to share a Baby Analyzer
+// Operators may copy-paste the URL after Calculate to share a Residential Analyzer
 // view back to a teammate or Fast Calc.
 export function buildSearchString(state) {
   const params = new URLSearchParams()

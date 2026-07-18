@@ -44,7 +44,7 @@ export default function MixedUseTab() {
         <h2 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 600 }}>Mixed Use</h2>
         <p style={{ color: '#5a6a8a', fontSize: 14, lineHeight: 1.6, margin: 0 }}>
           One parcel, multiple income types. Enter each component's NOI and cap rate — the tool blends them into one value and one offer number.
-          Run each component through its own Baby Analyzer tab first to get the NOI, then bring it here.
+          Run each component through its own Residential Analyzer tab first to get the NOI, then bring it here.
         </p>
       </header>
 

@@ -26,7 +26,7 @@ export default function ExitStrategiesTab() {
         <h2 style={{ margin: '0 0 8px', fontSize: 22, fontWeight: 600 }}>Alternative Exit Strategies</h2>
         <p style={{ color: '#5a6a8a', fontSize: 14, lineHeight: 1.6, margin: 0 }}>
           Seven exit models beyond the standard flip/LTR. Select a strategy, enter your numbers, get the key metrics.
-          All math is additive — no existing Baby Analyzer formulas are modified.
+          All math is additive — no existing Residential Analyzer formulas are modified.
         </p>
       </header>
 

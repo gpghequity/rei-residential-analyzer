@@ -14,7 +14,7 @@ import { landMetrics } from '../math/land.js'
 // Output follows the platform report standard: Quick Answer → Property Facts →
 // Zoning → type-specific questions → Valuation Metrics → Risk Rating → Offer
 // Logic → LOI Terms → Final Recommendation. Saved to Drive + the Properties
-// sheet like every other Baby Analyzer report.
+// sheet like every other Residential Analyzer report.
 // ─────────────────────────────────────────────────────────────────────────────
 
 const money = (v) => (v == null || v === '' || !Number.isFinite(Number(v)))

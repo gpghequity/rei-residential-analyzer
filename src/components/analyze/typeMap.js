@@ -9,7 +9,7 @@
 //
 // HARD RULES (per Steve):
 //   • NEVER ask the user for NOI. Ask Gross Annual Income + Annual Operating
-//     Expenses; Baby Analyzer computes NOI itself, ALWAYS.
+//     Expenses; Residential Analyzer computes NOI itself, ALWAYS.
 //   • Unit bands do NOT overlap: 1–4 (residential), 5–19 (small MF), 20+ (large MF).
 //   • Each deal type asks the questions that type actually needs.
 //
@@ -23,7 +23,7 @@
 //   Mixed Use            → commercial_dscr on blended NOI
 //   IOS / Land           → LAND supported-intake (no offer engine)
 //
-// Lending is intentionally excluded from Baby Analyzer.
+// Lending is intentionally excluded from Residential Analyzer.
 
 const num = (v) => {
   const n = parseFloat(String(v ?? '').replace(/[$,\s]/g, ''));
@@ -51,7 +51,7 @@ function deriveNOI(f) {
 const INCOME_FIELDS = [
   { key: 'askingPrice', label: 'Seller Asking Price ($)', type: 'money' },
   { key: 'grossIncome', label: 'Gross Annual Income ($/yr)', type: 'money', hint: 'All rent + other income for the year, BEFORE expenses.' },
-  { key: 'expenses', label: 'Annual Operating Expenses ($/yr)', type: 'money', hint: 'Taxes, insurance, utilities, management, repairs, reserves. Baby Analyzer computes NOI = Income − Expenses (storage enforces a 35% expense floor). Leave blank and a 40% expense assumption is used.' }
+  { key: 'expenses', label: 'Annual Operating Expenses ($/yr)', type: 'money', hint: 'Taxes, insurance, utilities, management, repairs, reserves. Residential Analyzer computes NOI = Income − Expenses (storage enforces a 35% expense floor). Leave blank and a 40% expense assumption is used.' }
 ];
 
 export const PROPERTY_TYPES = [
@@ -159,7 +159,7 @@ export const PROPERTY_TYPES = [
     label: 'Mobile Home Park / RV Park',
     enrichAssetType: 'mhp',
     implemented: true,
-    note: 'Income is built from lot economics (lots × lot rent + park-owned homes). Baby Analyzer computes NOI and runs the storage/commercial income framework.',
+    note: 'Income is built from lot economics (lots × lot rent + park-owned homes). Residential Analyzer computes NOI and runs the storage/commercial income framework.',
     fields: [
       { key: 'askingPrice', label: 'Seller Asking Price ($)', type: 'money' },
       { key: 'lots', label: 'Total Lots', type: 'number' },

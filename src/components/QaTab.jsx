@@ -4,7 +4,7 @@ import { ASSET_CLASSES } from '../qa/fixtures.js'
 import { VERSION, BUILD_DATE } from '../version.js'
 
 // ─────────────────────────────────────────────────────────────────────────────
-// Baby Analyzer QA Runner (internal). Runs the frozen golden fixtures through the
+// Residential Analyzer QA Runner (internal). Runs the frozen golden fixtures through the
 // REAL engines and shows PASS/FAIL with expected / actual / diff / tolerance /
 // formula / Math Bible section. Also: storage capital-stack proof, multifamily
 // routing proof, land no-fake-offer proof, an extractor diagnostics panel, a
@@ -268,9 +268,9 @@ function buildReportHtml({ results, routing, land, stamp }) {
   const fixtureRows = results.map((r) => `<tr><td>${r.pass ? '✓' : '✗ FAIL'}</td><td>${r.label}</td><td>${r.assetClass}</td><td>${r.checks.filter((c) => c.pass).length}/${r.checks.length}</td><td>${r.bibleSection}</td></tr>`).join('')
   const failBlocks = results.filter((r) => !r.pass).map((r) => `<h4>${r.label} — failures</h4><ul>${r.checks.filter((c) => !c.pass).map((c) => `<li>${c.label}: expected ${c.expected}, got ${c.actual} (tol ${c.tol}) — ${c.formula}</li>`).join('')}</ul>`).join('') || '<p>No failures. ✅</p>'
   const formulaRows = results.map((r) => `<tr><td>${r.label}</td><td>${r.formula || '—'}</td><td>${r.bibleSection}</td></tr>`).join('')
-  return `<!doctype html><html><head><meta charset="utf-8"><title>Baby Analyzer QA Report</title>
+  return `<!doctype html><html><head><meta charset="utf-8"><title>Residential Analyzer QA Report</title>
 <style>body{font-family:Arial,sans-serif;color:#1E2A45;max-width:1000px;margin:24px auto}h1,h2,h4{color:#0A0F2C}table{border-collapse:collapse;width:100%;margin:8px 0}td,th{border:1px solid #d4dae8;padding:4px 8px;font-size:12px;text-align:left}th{background:#0A0F2C;color:#fff}.ok{color:#2F7A40;font-weight:bold}.bad{color:#B23030;font-weight:bold}</style></head><body>
-<h1>Baby Analyzer — QA Report</h1>
+<h1>Residential Analyzer — QA Report</h1>
 <p><b>Date/time:</b> ${stamp} · <b>App version:</b> v${VERSION} (${BUILD_DATE}) · <b>Bundle hash:</b> ${bundleHash()}</p>
 <p><b>Live URL:</b> ${liveUrl}</p>
 <h2 class="${passN === results.length && routing.pass && land.pass ? 'ok' : 'bad'}">Result: ${passN}/${results.length} fixtures pass · routing ${routing.pass ? 'PASS' : 'FAIL'} · land guards ${land.pass ? 'PASS' : 'FAIL'}</h2>
@@ -330,7 +330,7 @@ export default function QaTab() {
   return (
     <div>
       <div style={{ ...card, borderLeft: `6px solid ${GOLD}` }} className="no-print">
-        <h3 style={h3}>Baby Analyzer QA Runner <span style={srcStyle}>· internal · v{VERSION}</span></h3>
+        <h3 style={h3}>Residential Analyzer QA Runner <span style={srcStyle}>· internal · v{VERSION}</span></h3>
         <p style={srcStyle}>Runs frozen golden deals through the REAL Math Bible engines and proves PASS/FAIL per asset class — no manual guessing. Adds no math; validates routing + capital stack + land guards.</p>
         <button type="button" onClick={runAll} disabled={state.phase === 'running'}
           style={{ padding: '12px 28px', fontSize: 16, fontWeight: 700, borderRadius: 8, border: 'none', cursor: state.phase === 'running' ? 'wait' : 'pointer', background: NAVY, color: GOLD }}>

@@ -774,7 +774,7 @@ export default function AnalyzeDealTab({ sharedUrlState, deepUrlState }) {
       }
 
       // Auto-detect asset type from extracted data and set typeId.
-      // Matches extractor asset_type to Baby Analyzer PROPERTY_TYPES.
+      // Matches extractor asset_type to Residential Analyzer PROPERTY_TYPES.
       if (extractedNorm && extractedNorm.assetType) {
         const detected = String(extractedNorm.assetType).toLowerCase().trim()
         // Check for mixed-use indicators first
@@ -1267,7 +1267,7 @@ function Results({ r }) {
             <OfferTiers tiers={offerTiers(r)} />
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 8, marginTop: 4 }}>
               <Val label="Seller Asking" value={money(r.inputs.askingPrice || ex?.asking)} source={r.inputs.askingPrice ? 'User input' : (ex?.asking ? 'Extracted document' : 'n/a')} />
-              <Val label="DSCR" value={r.headline.dscr != null ? Number(r.headline.dscr).toFixed(2) : '—'} source="Baby Analyzer calculation" />
+              <Val label="DSCR" value={r.headline.dscr != null ? Number(r.headline.dscr).toFixed(2) : '—'} source="Residential Analyzer calculation" />
             </div>
           </>
         )}
@@ -1352,7 +1352,7 @@ function Results({ r }) {
       {/* ZONE 2 — CALCULATIONS (non-income; income assets use the matrix above) */}
       {!r.matrix && (
       <div style={card}>
-        <h3 style={h3}>Baby Analyzer Calculations <span style={srcStyle}>(bible math — engine: {r.calcTypeUsed || 'none'})</span></h3>
+        <h3 style={h3}>Residential Analyzer Calculations <span style={srcStyle}>(bible math — engine: {r.calcTypeUsed || 'none'})</span></h3>
         {!r.calc && (r.isIncome
           ? <p style={{ color: '#C8851A', fontWeight: 600 }}>No NOI yet — this asset type IS supported. Enter NOI, or Gross Income + Annual Expenses (or an expense ratio %), or upload an OM / T-12 that states them, then re-run. Raw data captured and saved.</p>
           : <p style={{ color: '#C8851A', fontWeight: 600 }}>Insufficient inputs to compute — data captured and saved.</p>)}
@@ -1435,11 +1435,11 @@ function Results({ r }) {
         <h3 style={h3}>Broker vs Calculated NOI</h3>
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 8 }}>
           <Val label="Broker / OM Stated NOI" value={money(r.brokerNOI)} source="Extracted document" />
-          <Val label="Baby Analyzer NOI" value={money(r.calcNOI)} source="Baby Analyzer" />
+          <Val label="Residential Analyzer NOI" value={money(r.calcNOI)} source="Residential Analyzer" />
           <Val label="Difference" value={r.noiDelta != null ? money(r.noiDelta) : '—'} source="Calculated − Broker" />
         </div>
         {r.noiDelta != null && Math.abs(r.noiDelta) > 0 && (
-          <p style={srcStyle}>Difference reflects expense-floor enforcement / actual (not pro-forma) figures used by Baby Analyzer.</p>
+          <p style={srcStyle}>Difference reflects expense-floor enforcement / actual (not pro-forma) figures used by Residential Analyzer.</p>
         )}
       </div>
 
@@ -1740,7 +1740,7 @@ function Results({ r }) {
 // Minimal HTML snapshot stored to Drive.
 function buildReportHtml(r) {
   const rows = []
-  rows.push(`<h1>Baby Analyzer — ${r.propertyType}</h1>`)
+  rows.push(`<h1>Residential Analyzer — ${r.propertyType}</h1>`)
   rows.push(`<p>Generated ${r.generatedAt}</p>`)
   rows.push(`<h2>${r.recommendation.verdict}</h2><p>${r.recommendation.basis}</p>`)
   if (r.matrix) {
@@ -1782,5 +1782,5 @@ ${r.risk.topRedFlags?.map(f => `<tr><td colspan="2"><strong>${f.category}</stron
   rows.push(`<h3>Comps</h3><pre>${JSON.stringify(r.comps, null, 2)}</pre>`)
   rows.push(`<h3>Photos / Rehab</h3><pre>${JSON.stringify(r.photoRes, null, 2)}</pre>`)
   rows.push(`<h3>Missing</h3><ul>${r.missing.map(m => `<li>${m}</li>`).join('')}</ul>`)
-  return `<!doctype html><html><head><meta charset="utf-8"><title>Baby Analyzer Report</title></head><body>${rows.join('\n')}</body></html>`
+  return `<!doctype html><html><head><meta charset="utf-8"><title>Residential Analyzer Report</title></head><body>${rows.join('\n')}</body></html>`
 }
