@@ -358,8 +358,26 @@ describe('mhp.js (Fast Calc V2.6 port)', () => {
 })
 
 describe('commercial.js (live)', () => {
-  it('exports DEFAULT_DSCR and runs without throwing on valid inputs', async () => {
+  it('no longer OWNS lender/seller/DSCR terms — they come from the live Bible', async () => {
     const mod = await import('../math/commercial.js')
-    expect(typeof mod.DEFAULT_DSCR).toBe('number')
+    // The divergent owned defaults (7%/30 lender, 6%/20 seller) that drove the
+    // 8.64% commercial overpay were removed 2026-07-18.
+    expect(mod.DEFAULT_LENDER_RATE).toBeUndefined()
+    expect(mod.DEFAULT_LENDER_AM_YEARS).toBeUndefined()
+    expect(mod.DEFAULT_SELLER_RATE).toBeUndefined()
+    expect(mod.DEFAULT_SELLER_AM_YEARS).toBeUndefined()
+    expect(mod.DEFAULT_DSCR).toBeUndefined()
+    // Reserve/expense defaults that MATCH the Bible remain (user-overridable).
+    expect(typeof mod.DEFAULT_COLLECTION_LOSS).toBe('number')
+  })
+
+  it('computeScenario FAILS CLOSED when a required term is missing (no silent 7%/30 fallback)', async () => {
+    const { computeScenario } = await import('../math/commercial.js')
+    const income = { tenants: [], totalBaseRent: 100000, totalReimbursements: 0, otherIncome: 0, totalSF: 1000 }
+    expect(() => computeScenario({
+      income, opEx: {}, reserves: { tiLcPsf: 0.75, capexPsf: 0.30 },
+      mvmPct: 0, econVacancyPct: 0, collectionLossPct: 0, askingPrice: 0,
+      terms: {}   // no terms → must throw, not underwrite on an owned default
+    })).toThrow(/fail closed|required term/i)
   })
 })

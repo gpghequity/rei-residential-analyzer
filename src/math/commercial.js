@@ -16,13 +16,16 @@
 // came to say 7% / 30yr while the Bible says 7.25% / 25yr — an 8.64% overpay on
 // every commercial deal. That policy is dead.
 
-// ── Lender + reserve defaults (all user-overridable in UI) ─────────────
-export const DEFAULT_DSCR = 1.25
-export const DEFAULT_LENDER_RATE = 0.07
-export const DEFAULT_LENDER_AM_YEARS = 30
+// ── Reserve + expense defaults still owned here (all match the Bible, all
+// user-overridable). The LENDER / SELLER / DSCR *terms* that used to live here —
+// DEFAULT_LENDER_RATE (0.07) / _AM_YEARS (30) / _SELLER_RATE (0.06) / _AM_YEARS (20)
+// / _DSCR (1.25) — were REMOVED 2026-07-18. They DIVERGED from the Bible (7.25% /
+// 25-yr lender, 5% / 25-yr seller) and, because computeScenario fell back to them via
+// `|| DEFAULT_`, drove an 8.64% overpay on every commercial deal whenever a term
+// field was blank. Those terms now arrive through `terms`, sourced from the live
+// Bible (CommercialTab seeds them from loadConstants(); computeScenario fails closed
+// on a missing term — see reqTerm). A math module must not own a rate/amort/DSCR.
 export const DEFAULT_LENDER_TERM_YEARS = 5
-export const DEFAULT_SELLER_RATE = 0.06
-export const DEFAULT_SELLER_AM_YEARS = 20
 export const DEFAULT_COLLECTION_LOSS = 0.02
 export const DEFAULT_PROP_MGMT_PCT = 0.05
 
@@ -180,6 +183,21 @@ function num(v) {
   return Number.isFinite(n) ? n : 0
 }
 
+// Underwriting terms fail closed. No divergent owned default may silently stand in
+// for a missing Bible-sourced term — that substitution is exactly how the 7% / 30-yr
+// commercial overpay survived. A blank/invalid required term throws instead.
+function reqTerm(v, name) {
+  const n = num(v)
+  if (!Number.isFinite(n) || n <= 0) {
+    throw new Error(
+      `commercial.computeScenario: required term "${name}" is missing or invalid ` +
+      `(${JSON.stringify(v)}) — refusing to fall back to an owned constant (fail closed). ` +
+      `Terms must be supplied from the live Bible.`
+    )
+  }
+  return n
+}
+
 export function annualLoanConstant(annualRate, amYears) {
   const r = num(annualRate)
   const n = num(amYears) * 12
@@ -282,11 +300,13 @@ export function computeScenario({ income, opEx, reserves, mvmPct, econVacancyPct
   const ask = num(askingPrice)
   const impliedCapRate = ask > 0 ? noi / ask : null
 
-  const dscr = num(terms.dscr) || DEFAULT_DSCR
-  const lenderRate = num(terms.lenderRate) || DEFAULT_LENDER_RATE
-  const lenderAm = num(terms.lenderAm) || DEFAULT_LENDER_AM_YEARS
-  const sellerRate = num(terms.sellerRate) || DEFAULT_SELLER_RATE
-  const sellerAm = num(terms.sellerAm) || DEFAULT_SELLER_AM_YEARS
+  // Fail closed — every term must be supplied by the caller (sourced from the live
+  // Bible: 7.25%/25 lender, 5%/25 seller, 1.25 DSCR). No `|| DEFAULT_` fallback.
+  const dscr       = reqTerm(terms.dscr, 'dscr')
+  const lenderRate = reqTerm(terms.lenderRate, 'lenderRate')
+  const lenderAm   = reqTerm(terms.lenderAm, 'lenderAm')
+  const sellerRate = reqTerm(terms.sellerRate, 'sellerRate')
+  const sellerAm   = reqTerm(terms.sellerAm, 'sellerAm')
 
   const senior_K = annualLoanConstant(lenderRate, lenderAm)
   const seller_K = annualLoanConstant(sellerRate, sellerAm)

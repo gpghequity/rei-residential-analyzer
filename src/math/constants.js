@@ -95,6 +95,13 @@ export function loadConstants() {
   flat.AMORT_BANK_COMMERCIAL = req(COMM.amortizationYears, 'COMMERCIAL.amortizationYears') // 25
   flat.LTV_COMMERCIAL        = req(COMM.ltv, 'COMMERCIAL.ltv')                          // 0.75
   flat.K_BANK_COMMERCIAL     = annualLoanConstant(flat.RATE_BANK_COMMERCIAL, flat.AMORT_BANK_COMMERCIAL)
+  // Commercial deep-underwriter (CommercialTab) form defaults — sourced live so the
+  // engine can never again default to the divergent 7% / 30-yr lender + 6% / 20-yr
+  // seller it used to own in commercial.js (an 8.64% overpay on every commercial deal).
+  flat.DSCR_COMMERCIAL         = req(COMM.dscr && COMM.dscr.standard, 'COMMERCIAL.dscr.standard')          // 1.25
+  flat.LENDER_TERM_COMMERCIAL  = req(COMM.lenderTermYears, 'COMMERCIAL.lenderTermYears')                   // 5 (balloon)
+  flat.RATE_SELLER_COMMERCIAL  = req(COMM.sellerFinance && COMM.sellerFinance.rate, 'COMMERCIAL.sellerFinance.rate')            // 0.05
+  flat.AMORT_SELLER_COMMERCIAL = req(COMM.sellerFinance && COMM.sellerFinance.amortYears, 'COMMERCIAL.sellerFinance.amortYears') // 25
 
   // ── Global ───────────────────────────────────────────────────────────────
   flat.POCKET_FLOOR = req(GLOB.pocketCashFloor, 'GLOBAL.pocketCashFloor')

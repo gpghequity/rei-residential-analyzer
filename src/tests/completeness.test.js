@@ -44,10 +44,22 @@ import {
   computeIncome, computeScenario, computeCommercial,
   subclassWarnings, detectMixedUse,
   annualLoanConstant as commercialALC,
-  DEFAULT_DSCR, DEFAULT_LENDER_RATE, DEFAULT_LENDER_AM_YEARS,
-  DEFAULT_SELLER_RATE, DEFAULT_SELLER_AM_YEARS,
   DEFAULT_TI_LC_PSF, DEFAULT_CAPEX_PSF, DEFAULT_COLLECTION_LOSS
 } from '../math/commercial.js'
+
+// Commercial underwriting terms now come from the live Bible (7.25%/25 lender,
+// 5%/25 seller, 1.25 DSCR) — commercial.js no longer owns DEFAULT_LENDER_RATE etc.
+// setup.js hydrates the singleton from the committed Bible snapshot before this runs.
+const COMM_TERMS = (() => {
+  const C = loadConstants()
+  return {
+    dscr: C.DSCR_COMMERCIAL,
+    lenderRate: C.RATE_BANK_COMMERCIAL,
+    lenderAm: C.AMORT_BANK_COMMERCIAL,
+    sellerRate: C.RATE_SELLER_COMMERCIAL,
+    sellerAm: C.AMORT_SELLER_COMMERCIAL
+  }
+})()
 import { blendComponents } from '../math/mixedUse.js'
 import {
   calcCreative, calcLeaseOption, calcBRRRR
@@ -563,7 +575,7 @@ describe('Commercial — computeScenario NOI formula', () => {
   }
   const opEx = { propertyTax: 20000, insurance: 5000, cam: 10000, commonUtilities: 0, propMgmtIsPct: false, propMgmtPct: 0.05, propMgmtPctOrAmount: 0, onsiteManager: 0, officeAdmin: 0, marketing: 0, legal: 0, repairs: 3000, roofReserve: 2000, other: 0 }
   const reserves = { tiLcPsf: 0.75, capexPsf: 0.30 }
-  const terms = { dscr: DEFAULT_DSCR, lenderRate: DEFAULT_LENDER_RATE, lenderAm: DEFAULT_LENDER_AM_YEARS, sellerRate: DEFAULT_SELLER_RATE, sellerAm: DEFAULT_SELLER_AM_YEARS }
+  const terms = { ...COMM_TERMS }
 
   it('NOI = EGI − netOpExToLandlord − TI/LC − CapEx = $123,600', () => {
     const r = computeScenario({ income, opEx, reserves, mvmPct: 0, econVacancyPct: 0, collectionLossPct: 0, askingPrice: 0, terms })
@@ -585,8 +597,8 @@ describe('Commercial — computeScenario NOI formula', () => {
 
   it('maxSeniorLoan = (noi / dscr) / K_lender', () => {
     const r = computeScenario({ income, opEx, reserves, mvmPct: 0, econVacancyPct: 0, collectionLossPct: 0, askingPrice: 0, terms })
-    const K_lender = commercialALC(DEFAULT_LENDER_RATE, DEFAULT_LENDER_AM_YEARS)
-    const expectedMaxDS = r.noi / DEFAULT_DSCR
+    const K_lender = commercialALC(COMM_TERMS.lenderRate, COMM_TERMS.lenderAm)
+    const expectedMaxDS = r.noi / COMM_TERMS.dscr
     const expectedMaxLoan = expectedMaxDS / K_lender
     expect(r.maxAnnualDS).toBeCloseTo(expectedMaxDS, 0)
     expect(r.maxSeniorLoan).toBeCloseTo(expectedMaxLoan, 0)
@@ -612,7 +624,7 @@ describe('Commercial — computeCommercial full pipeline', () => {
       collectionLossPct: '',
       askingPrice: '900000',
       reserves: { tiLcPsf: String(DEFAULT_TI_LC_PSF), capexPsf: String(DEFAULT_CAPEX_PSF) },
-      terms: { dscr: String(DEFAULT_DSCR), lenderRate: String(DEFAULT_LENDER_RATE), lenderAm: String(DEFAULT_LENDER_AM_YEARS), sellerRate: String(DEFAULT_SELLER_RATE), sellerAm: String(DEFAULT_SELLER_AM_YEARS) },
+      terms: { dscr: String(COMM_TERMS.dscr), lenderRate: String(COMM_TERMS.lenderRate), lenderAm: String(COMM_TERMS.lenderAm), sellerRate: String(COMM_TERMS.sellerRate), sellerAm: String(COMM_TERMS.sellerAm) },
       subclass: 'retail_single'
     }
     const out = computeCommercial(inputs)

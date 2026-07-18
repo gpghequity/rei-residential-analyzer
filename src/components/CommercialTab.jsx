@@ -6,10 +6,9 @@
 // snapshot of the spec.
 
 import { useState, useMemo } from 'react'
+import { loadConstants } from '../math/constants.js'
 import {
   computeCommercial,
-  DEFAULT_DSCR, DEFAULT_LENDER_RATE, DEFAULT_LENDER_AM_YEARS, DEFAULT_LENDER_TERM_YEARS,
-  DEFAULT_SELLER_RATE, DEFAULT_SELLER_AM_YEARS,
   DEFAULT_COLLECTION_LOSS, DEFAULT_TI_LC_PSF, DEFAULT_CAPEX_PSF,
   LEASE_TYPE_RECOVERIES,
   COMMERCIAL_SUBCLASSES, SUBCLASS_DEFAULTS, getSubclassDefaults,
@@ -59,35 +58,44 @@ const blankTenant = () => ({
 
 const blankOtherIncome = () => ({ label: '', amount: '' })
 
-const INITIAL = {
-  propertyName: '', address: '', county: '', state: '',
-  askingPrice: '', yearBuilt: '',
-  totalBuildingSF: '', totalLeasableSF: '',
-  buildingType: '', subclass: '', parcelId: '', siteId: '',
+// Build the initial form state from the LIVE Bible (fail closed). The lender + seller
+// underwriting terms are NO LONGER seeded from owned constants — they came to default
+// to 7% / 30-yr lender + 6% / 20-yr seller (an 8.64% overpay). They now default to the
+// Bible's 7.25% / 25-yr lender + 5% / 25-yr seller (COMMERCIAL.mortgageRate /
+// amortizationYears / sellerFinance). loadConstants() throws if the Bible was never
+// read, so the form cannot open on stale numbers. Reserves/collection still default to
+// the Bible-matching owned constants (user-overridable).
+function makeInitial(C) {
+  return {
+    propertyName: '', address: '', county: '', state: '',
+    askingPrice: '', yearBuilt: '',
+    totalBuildingSF: '', totalLeasableSF: '',
+    buildingType: '', subclass: '', parcelId: '', siteId: '',
 
-  rentRoll: [blankTenant(), blankTenant()],
-  otherIncomeLines: [],
+    rentRoll: [blankTenant(), blankTenant()],
+    otherIncomeLines: [],
 
-  econVacancyPct: '',
-  collectionLossPct: String(DEFAULT_COLLECTION_LOSS),
+    econVacancyPct: '',
+    collectionLossPct: String(DEFAULT_COLLECTION_LOSS),
 
-  opEx: {
-    propertyTax: '', insurance: '', cam: '',
-    commonUtilities: '',
-    propMgmtIsPct: true,
-    propMgmtPct: '0.05',
-    propMgmtPctOrAmount: '',
-    onsiteManager: '', officeAdmin: '', marketing: '', legal: '',
-    repairs: '', roofReserve: '', other: ''
-  },
-  reserves: { tiLcPsf: String(DEFAULT_TI_LC_PSF), capexPsf: String(DEFAULT_CAPEX_PSF) },
-  terms: {
-    dscr: String(DEFAULT_DSCR),
-    lenderRate: String(DEFAULT_LENDER_RATE),
-    lenderAm: String(DEFAULT_LENDER_AM_YEARS),
-    lenderTerm: String(DEFAULT_LENDER_TERM_YEARS),
-    sellerRate: String(DEFAULT_SELLER_RATE),
-    sellerAm: String(DEFAULT_SELLER_AM_YEARS)
+    opEx: {
+      propertyTax: '', insurance: '', cam: '',
+      commonUtilities: '',
+      propMgmtIsPct: true,
+      propMgmtPct: '0.05',
+      propMgmtPctOrAmount: '',
+      onsiteManager: '', officeAdmin: '', marketing: '', legal: '',
+      repairs: '', roofReserve: '', other: ''
+    },
+    reserves: { tiLcPsf: String(DEFAULT_TI_LC_PSF), capexPsf: String(DEFAULT_CAPEX_PSF) },
+    terms: {
+      dscr: String(C.DSCR_COMMERCIAL),
+      lenderRate: String(C.RATE_BANK_COMMERCIAL),
+      lenderAm: String(C.AMORT_BANK_COMMERCIAL),
+      lenderTerm: String(C.LENDER_TERM_COMMERCIAL),
+      sellerRate: String(C.RATE_SELLER_COMMERCIAL),
+      sellerAm: String(C.AMORT_SELLER_COMMERCIAL)
+    }
   }
 }
 
@@ -115,7 +123,7 @@ const td = { padding: '4px 6px', borderTop: '1px solid #e2e8f0', fontSize: 12, v
 const inp = { width: '100%', padding: '4px 6px', border: '1px solid #cbd5e1', borderRadius: 3, font: 'inherit', fontSize: 12 }
 
 export default function CommercialTab(_props) {
-  const [inputs, setInputs] = useState(INITIAL)
+  const [inputs, setInputs] = useState(() => makeInitial(loadConstants()))
   const [results, setResults] = useState(null)
   const [showExpanded, setShowExpanded] = useState(false)
 
@@ -155,7 +163,7 @@ export default function CommercialTab(_props) {
   }
 
   const reset = () => {
-    setInputs(INITIAL)
+    setInputs(makeInitial(loadConstants()))
     setResults(null)
   }
 

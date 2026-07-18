@@ -1,6 +1,6 @@
 {
   "bibleVersion": "11.25",
-  "contentHash": "1d14bcc2543d2a17",
+  "contentHash": "7cf738caba3d1049",
   "standards": {
     "CLOSING_COSTS": {
       "appraisalFee": 4000,
@@ -48,6 +48,10 @@
       "returnTargets": {
         "high": 0.18,
         "low": 0.1
+      },
+      "sellerFinance": {
+        "amortYears": 25,
+        "rate": 0.05
       },
       "subclassAliases": {
         "industrial_flex": "industrialFlex",
