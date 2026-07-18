@@ -1,5 +1,36 @@
 import { useState } from 'react'
 import { calcMhp, calcUtilityBurden, UTILITY_KEYS, POH_OPEX_PAD } from '../math/mhp.js'
+import { getBibleStandards } from '../math/constants.js'
+
+// Assumption form defaults are SEEDED FROM THE LIVE BIBLE, not hardcoded. The old
+// hardcoded seeds were wrong and drove every max-purchase: seniorRate 0.075 (Bible
+// 0.0725), seniorAmort 22 (Bible 25), buyerClosing 0.03 (Bible 0.02), lenderFees
+// 0.005 (Bible 0.01), appraisal $5,000 (Bible $4,000), environmental $5,000 (Bible
+// $3,500). MhpTab mounts only after the Bible is hydrated (deferred App import in
+// main.jsx; setup.js in tests), so getBibleStandards() is available here.
+function bibleAssumptionDefaults() {
+  const S = getBibleStandards()
+  const M = S.MHP
+  const CC = S.CLOSING_COSTS
+  return {
+    dscr: String(M.dscr),
+    seniorRate: String(M.mortgageRate),
+    seniorAmort: String(M.amortizationYears),
+    seniorLtv: String(M.ltv),
+    sellerFiRate: String(M.sellerFi.rate),
+    sellerFiAmort: String(M.sellerFi.amortYears),
+    sellerFiPct: String(M.sellerFi.pct),
+    managementPct: String(M.managementPct),
+    buyerClosingCostsPct: String(CC.buyerClosingCostsPct),
+    bankPointsPct: String(CC.bankPointsPct),
+    lenderFeesPct: String(CC.lenderFeesPct),
+    appraisalFee: String(CC.appraisalFee),
+    environmentalFee: String(CC.environmentalFee),
+    tohVacancyPct: String(M.tohVacancyPct),
+    pohVacancyPct: String(M.pohVacancyPct),
+    collectionLossPct: String(M.collectionLossPct)
+  }
+}
 
 const INITIAL = {
   // Lot accounting
@@ -12,10 +43,6 @@ const INITIAL = {
   lotRentMonthly: '',
   pohRentMonthly: '',
   otherIncomeAnnual: '',
-  // Vacancy / collection
-  tohVacancyPct: '0.05',
-  pohVacancyPct: '0.10',
-  collectionLossPct: '0.02',
   // OpEx (pre-utility-burden)
   opExLineItems: '',
   // Utilities
@@ -23,20 +50,8 @@ const INITIAL = {
     acc[k] = { mode: 'tenant-direct', costAnnual: '', recoveryPct: '' }
     return acc
   }, {}),
-  // Assumptions
-  dscr: '1.25',
-  seniorRate: '0.075',
-  seniorAmort: '22',
-  seniorLtv: '0.75',
-  sellerFiRate: '0.05',
-  sellerFiAmort: '25',
-  sellerFiPct: '1.0',
-  managementPct: '0.07',
-  buyerClosingCostsPct: '0.03',
-  bankPointsPct: '0.01',
-  lenderFeesPct: '0.005',
-  appraisalFee: '5000',
-  environmentalFee: '5000'
+  // Vacancy / collection + all assumptions — seeded live from the Bible.
+  ...bibleAssumptionDefaults()
 }
 
 // Accepts urlState + sharedUrlState props for forward compat with App.jsx;
