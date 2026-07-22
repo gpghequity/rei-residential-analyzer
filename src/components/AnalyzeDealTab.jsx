@@ -16,7 +16,7 @@ import LandTab from './LandTab.jsx'
 // total flows back via postMessage. One home for the rehab logic.
 const REHAB_CALC_URL = 'https://rei-rehab-calc.vercel.app'
 import PortfolioSection from './analyze/PortfolioSection.jsx'
-import { NATIONAL_PSF, REGIONAL_ADJ, toBenchmarkTier } from '../math/rehab/rehabSystems.js'
+import { NATIONAL_PSF, regionalAdj, toBenchmarkTier } from '../math/rehab/rehabSystems.js'
 
 // Which Rehab Calc system set each property type uses. EVERY type shows the
 // embedded condition→rehab questions (per Steve) — residential rehab feeds the
@@ -1048,7 +1048,7 @@ export default function AnalyzeDealTab({ sharedUrlState, deepUrlState }) {
         rehabConditionNational: showRehab ? (rehabDetail?.national?.total ?? null) : null, // human · national
         rehabPhoto: photoRes?.rehab_estimate_mid ?? null,            // photo · pic-rehab (your-ish)
         rehabPhotoNational: (showRehab && rehabDetail?.national?.area && photoRes?.overall_condition_tier)
-          ? Math.round(rehabDetail.national.area * (NATIONAL_PSF[toBenchmarkTier(photoRes.overall_condition_tier)] ?? 0) * REGIONAL_ADJ)
+          ? Math.round(rehabDetail.national.area * (NATIONAL_PSF[toBenchmarkTier(photoRes.overall_condition_tier)] ?? 0) * regionalAdj())
           : null,
         rehabBreakdown: showRehab ? (rehabDetail?.breakdown ?? null) : null,  // human per-line
         rehabPhotoTiers: photoRes?.per_system_tiers ?? null,                   // photo per-system
@@ -1184,7 +1184,7 @@ export default function AnalyzeDealTab({ sharedUrlState, deepUrlState }) {
                 if (val > 0) {
                   setRehabCondition(val)
                   const area = num(fields.sqft) || 0
-                  const national = area > 0 ? { area, psf: Math.round(NATIONAL_PSF.medium_rehab * REGIONAL_ADJ), total: Math.round(area * NATIONAL_PSF.medium_rehab * REGIONAL_ADJ), tier: 'medium' } : null
+                  const national = area > 0 ? { area, psf: Math.round(NATIONAL_PSF.medium_rehab * regionalAdj()), total: Math.round(area * NATIONAL_PSF.medium_rehab * regionalAdj()), tier: 'medium' } : null
                   setRehabDetail({ breakdown: [], national })
                   setManualRehab('')
                 }

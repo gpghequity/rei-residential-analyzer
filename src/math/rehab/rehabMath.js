@@ -5,7 +5,7 @@
 // Verbatim math; only the import of tier rates is rewired to ./rehabSystems.js.
 // UI imports this; this never imports UI.
 
-import { TIER_RATES, STANDARD_TIER_KEYS, NATIONAL_PSF, REGIONAL_ADJ, toBenchmarkTier } from './rehabSystems.js'
+import { TIER_RATES, STANDARD_TIER_KEYS, NATIONAL_PSF, regionalAdj, toBenchmarkTier } from './rehabSystems.js'
 
 // Rehabbable area used for the national $/sf benchmark, per mode.
 export function rehabArea(mode, sizing) {
@@ -20,7 +20,7 @@ export function rehabArea(mode, sizing) {
 export function nationalTotal(mode, sizing, conditionOrTier) {
   const area = rehabArea(mode, sizing)
   const tier = toBenchmarkTier(conditionOrTier)
-  const psf = (NATIONAL_PSF[tier] ?? 0) * REGIONAL_ADJ
+  const psf = (NATIONAL_PSF[tier] ?? 0) * regionalAdj()
   return { tier, psf: Math.round(psf), area: Math.round(area), total: Math.round(area * psf) }
 };
 

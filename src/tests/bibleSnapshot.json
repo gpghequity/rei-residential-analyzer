@@ -1,6 +1,6 @@
 {
   "bibleVersion": "11.25",
-  "contentHash": "7cf738caba3d1049",
+  "contentHash": "1c74790205010d74",
   "standards": {
     "CLOSING_COSTS": {
       "appraisalFee": 4000,
@@ -218,6 +218,13 @@
     },
     "LENDING": {
       "assetClass": "lending",
+      "dscrWorksheet": {
+        "managementPctFloor": 0.05,
+        "repairsMaintPctFloor": 0.05,
+        "reservesPerUnitFloor": 250,
+        "stressTestRatePct": 8.25,
+        "vacancyFloorPct": 0.05
+      },
       "interestRate": 0.12,
       "loanAmount": "ARV based",
       "ltv": {
@@ -410,6 +417,15 @@
     },
     "REHAB": {
       "description": "All rehab pricing from REI Platform Bible v11.23 Section 5 (source of truth for rehab costs)",
+      "nationalPsf": {
+        "heavy_rehab": 45,
+        "light_rehab": 15,
+        "medium_rehab": 25,
+        "move_in": 8,
+        "studs": 110
+      },
+      "nationalPsfRegionalAdj": 1,
+      "nationalPsfSource": "Steve's national rehab $/SF ladder (2026)",
       "systems": {
         "appliances": {
           "tiers": {
