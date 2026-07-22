@@ -1,6 +1,6 @@
 {
   "bibleVersion": "11.25",
-  "contentHash": "1c74790205010d74",
+  "contentHash": "0db1deb82c6df2ec",
   "standards": {
     "CLOSING_COSTS": {
       "appraisalFee": 4000,
@@ -416,7 +416,103 @@
       "mortgageRate": 0.0725
     },
     "REHAB": {
+      "commercial": {
+        "systems": {
+          "electrical": {
+            "baseCost": 8,
+            "description": "Electrical",
+            "unit": "per_sqft"
+          },
+          "facade": {
+            "baseCost": 15,
+            "description": "Facade / exterior",
+            "unit": "per_sqft"
+          },
+          "hvac": {
+            "baseCost": 18,
+            "description": "HVAC",
+            "unit": "per_sqft"
+          },
+          "interior": {
+            "baseCost": 60,
+            "description": "Interior buildout / TI",
+            "unit": "per_sqft"
+          },
+          "parking": {
+            "amounts": [
+              0,
+              5000,
+              15000,
+              30000,
+              60000,
+              100000
+            ],
+            "description": "Parking lot",
+            "unit": "dropdown"
+          },
+          "plumbing": {
+            "amounts": [
+              0,
+              5000,
+              15000,
+              30000,
+              60000,
+              120000
+            ],
+            "description": "Plumbing",
+            "unit": "dropdown"
+          },
+          "roof": {
+            "baseCost": 12,
+            "description": "Roof",
+            "unit": "per_sqft"
+          },
+          "signage": {
+            "amounts": [
+              0,
+              2500,
+              7500,
+              15000,
+              30000
+            ],
+            "description": "Signage",
+            "unit": "dropdown"
+          },
+          "siteWork": {
+            "amounts": [
+              0,
+              10000,
+              25000,
+              50000,
+              100000
+            ],
+            "description": "Site work / drainage",
+            "unit": "dropdown"
+          },
+          "storefront": {
+            "amounts": [
+              0,
+              5000,
+              15000,
+              30000,
+              60000
+            ],
+            "description": "Storefront / glazing",
+            "unit": "dropdown"
+          }
+        }
+      },
       "description": "All rehab pricing from REI Platform Bible v11.23 Section 5 (source of truth for rehab costs)",
+      "geometry": {
+        "defaultWindowCount": 20,
+        "roofPitchMultiplier": 1.12,
+        "sidingGableFactor": 1.1,
+        "sidingPerimeterFactor": 4.5,
+        "sidingWallHeight": 9,
+        "storageCameraDefaultCount": 8,
+        "storageHvacAvgUnitSize": 100,
+        "storagePoleLightDefaultCount": 4
+      },
       "nationalPsf": {
         "heavy_rehab": 45,
         "light_rehab": 15,
@@ -426,6 +522,127 @@
       },
       "nationalPsfRegionalAdj": 1,
       "nationalPsfSource": "Steve's national rehab $/SF ladder (2026)",
+      "storage": {
+        "systems": {
+          "accessControl": {
+            "amounts": [
+              0,
+              2000,
+              5000,
+              10000,
+              20000
+            ],
+            "description": "Access control",
+            "unit": "dropdown"
+          },
+          "cameras": {
+            "baseCost": 500,
+            "defaultCount": 8,
+            "description": "Cameras / security",
+            "unit": "per_camera"
+          },
+          "climateHallway": {
+            "baseCost": 25,
+            "description": "Climate hallway interior",
+            "unit": "per_sqft"
+          },
+          "doorHardware": {
+            "baseCost": 50,
+            "defaultCount": "totalUnits",
+            "description": "Spring kit + latch",
+            "unit": "per_door"
+          },
+          "exteriorPaint": {
+            "baseCost": 3,
+            "description": "Exterior paint / cladding",
+            "unit": "per_sqft"
+          },
+          "fencing": {
+            "baseCost": 22,
+            "description": "6ft chain link installed",
+            "unit": "per_lf"
+          },
+          "gate": {
+            "amounts": [
+              0,
+              4000,
+              8000,
+              12000,
+              20000
+            ],
+            "description": "Gate / motor",
+            "unit": "dropdown"
+          },
+          "hvac": {
+            "avgUnitSize": 100,
+            "baseCost": 10,
+            "description": "HVAC / climate control",
+            "unit": "per_sqft"
+          },
+          "office": {
+            "amounts": [
+              0,
+              2500,
+              5000,
+              10000,
+              15000
+            ],
+            "description": "Office buildout",
+            "unit": "dropdown"
+          },
+          "pavement": {
+            "baseCost": 5,
+            "description": "Pavement / drive aisles",
+            "unit": "per_sqft"
+          },
+          "poleLights": {
+            "baseCost": 2000,
+            "defaultCount": 4,
+            "description": "LED pole / area lighting",
+            "unit": "per_pole"
+          },
+          "rollupDoors": {
+            "baseCost": 355,
+            "defaultCount": "totalUnits",
+            "description": "Roll-up doors turnkey",
+            "unit": "per_door"
+          },
+          "roof": {
+            "baseCost": 6,
+            "description": "Roof / membrane (TPO/EPDM)",
+            "unit": "per_sqft"
+          },
+          "signage": {
+            "amounts": [
+              0,
+              1500,
+              3000,
+              5000,
+              10000
+            ],
+            "description": "Signage",
+            "unit": "dropdown"
+          },
+          "siteWork": {
+            "amounts": [
+              0,
+              2500,
+              5000,
+              10000,
+              20000,
+              40000
+            ],
+            "description": "Site work / drainage",
+            "unit": "dropdown"
+          },
+          "unitInterior": {
+            "baseCost": 200,
+            "defaultCount": "totalUnits",
+            "description": "Unit interior repairs",
+            "unit": "per_unit"
+          }
+        }
+      },
       "systems": {
         "appliances": {
           "tiers": {

@@ -30,8 +30,9 @@ import { getBibleStandards } from '../constants.js'
 function rehabStd() {
   const std = getBibleStandards()
   const R = std && std.REHAB
-  if (!R || !R.tiers || !R.systems || !R.nationalPsf || !Number.isFinite(R.nationalPsfRegionalAdj)) {
-    throw new Error('rehabSystems: live Bible REHAB (tiers / systems / nationalPsf / regionalAdj) required — refusing to price rehab. No hardcoded fallback.')
+  if (!R || !R.tiers || !R.systems || !R.nationalPsf || !Number.isFinite(R.nationalPsfRegionalAdj)
+      || !R.storage || !R.commercial || !R.geometry) {
+    throw new Error('rehabSystems: live Bible REHAB (tiers / systems / nationalPsf / regionalAdj / storage / commercial / geometry) required — refusing to price rehab. No hardcoded fallback.')
   }
   return R
 }
@@ -66,36 +67,22 @@ export const TIER_LABELS = {
 export const STANDARD_TIER_KEYS = ['new', 'modern', 'semiModern', 'old', 'missing']
 export const COSMETIC_TIER_KEYS = ['new', 'modern', 'semiModern', 'old', 'missing', 'drywallNeeded', 'studdedOut']
 
-// Storage/commercial dropdown ladders — ORPHANS (no Bible home). Residential
-// dropdown amounts are NOT here anymore; they come live from REHAB.systems.
-const ORPHAN_AMOUNTS = {
-  storageGate:     [0, 4000, 8000, 12000, 20000],
-  storageAccess:   [0, 2000, 5000, 10000, 20000],
-  storageOffice:   [0, 2500, 5000, 10000, 15000],
-  storageSignage:  [0, 1500, 3000, 5000, 10000],
-  storageSiteWork: [0, 2500, 5000, 10000, 20000, 40000],
-  commParking:     [0, 5000, 15000, 30000, 60000, 100000],
-  commPlumbing:    [0, 5000, 15000, 30000, 60000, 120000],
-  commStorefront:  [0, 5000, 15000, 30000, 60000],
-  commSignage:     [0, 2500, 7500, 15000, 30000],
-  commSiteWork:    [0, 10000, 25000, 50000, 100000]
-}
-
 // ── RESIDENTIAL systems — BUILT FROM THE LIVE BIBLE ──────────────────────────
-// baseCost / flat tier prices / dropdown amounts all read from REHAB.systems.*.
-// Geometry factors (perimeter/wall/gable/pitch) and the window default count are
-// construction models, not costs — they stay local.
+// baseCost / flat tier prices / dropdown amounts read from REHAB.systems.*, and
+// the geometry factors (perimeter/wall/gable/pitch/window count) from
+// REHAB.geometry. NOTHING hardcoded.
 function buildResidentialSystems() {
   const R = rehabStd()
   const S = R.systems
+  const G = R.geometry
   const base = (id) => S[id].baseCost               // per-area $/unit base
   const tiers = (id) => S[id].tiers                 // flat $ per condition
   const amounts = (id) => S[id].amounts             // dropdown ladder
   return [
     { id: 'cosmetic', label: 'Cosmetic condition', pattern: 'A', pricing: { kind: 'rate_x_sizing', baseCost: base('cosmetic'), sizingTerm: 'totalSqFt', sizingUnit: 'sqft', tierKeys: COSMETIC_TIER_KEYS } },
-    { id: 'windows', label: 'Windows', pattern: 'A', pricing: { kind: 'rate_x_count', baseCost: base('windows'), defaultCount: 20, countLabel: '# Windows', countUnit: 'windows' } },
-    { id: 'siding', label: 'Siding', pattern: 'A', pricing: { kind: 'siding_formula', baseCost: base('siding'), perimeterFactor: 4.5, wallHeight: 9, gableFactor: 1.10 } },
-    { id: 'roof', label: 'Roof', pattern: 'A', pricing: { kind: 'roof_formula', baseCost: base('roof'), pitchMultiplier: 1.12 } },
+    { id: 'windows', label: 'Windows', pattern: 'A', pricing: { kind: 'rate_x_count', baseCost: base('windows'), defaultCount: G.defaultWindowCount, countLabel: '# Windows', countUnit: 'windows' } },
+    { id: 'siding', label: 'Siding', pattern: 'A', pricing: { kind: 'siding_formula', baseCost: base('siding'), perimeterFactor: G.sidingPerimeterFactor, wallHeight: G.sidingWallHeight, gableFactor: G.sidingGableFactor } },
+    { id: 'roof', label: 'Roof', pattern: 'A', pricing: { kind: 'roof_formula', baseCost: base('roof'), pitchMultiplier: G.roofPitchMultiplier } },
     { id: 'kitchen', label: 'Kitchen', pattern: 'A', pricing: { kind: 'static_per_unit', tiers: tiers('kitchen'), unitWord: 'kitchen' } },
     { id: 'fullBath', label: 'Full bath', pattern: 'B', pricing: { kind: 'static_per_count', tiers: tiers('fullBath'), defaultCount: 'units', countLabel: 'How many' } },
     { id: 'halfBath', label: '1/2 bath', pattern: 'B', pricing: { kind: 'static_per_count', tiers: tiers('halfBath'), defaultCount: 0, countLabel: 'How many' } },
@@ -112,44 +99,49 @@ function buildResidentialSystems() {
   ]
 }
 
-// ── STORAGE systems — base costs are ORPHANS (local); tier rates come live ────
+// ── STORAGE systems — BUILT FROM THE LIVE BIBLE (REHAB.storage.systems) ───────
 function buildStorageSystems() {
-  const holdingAmounts = rehabStd().systems.holding.amounts // shared holding ladder from the Bible
+  const R = rehabStd()
+  const S = R.storage.systems
+  const G = R.geometry
+  const holdingAmounts = R.systems.holding.amounts // shared holding ladder
   return [
-    { id: 'roof', label: 'Roof / membrane', pattern: 'A', pricing: { kind: 'rate_x_sizing', baseCost: 6, sizingTerm: 'roofSqFt', sizingUnit: 'sqft' } },
-    { id: 'rollupDoors', label: 'Roll-up doors', pattern: 'A', pricing: { kind: 'rate_x_count', baseCost: 355, defaultCount: 'totalUnits', countLabel: '# Doors', countUnit: 'doors' } },
-    { id: 'doorHardware', label: 'Door hardware', pattern: 'A', pricing: { kind: 'rate_x_count', baseCost: 50, defaultCount: 'totalUnits', countLabel: '# Doors', countUnit: 'doors' } },
-    { id: 'pavement', label: 'Pavement / drive aisles', pattern: 'A', pricing: { kind: 'rate_x_sizing', baseCost: 5, sizingTerm: 'driveAisleSqFt', sizingUnit: 'sqft' } },
-    { id: 'fencing', label: 'Perimeter fencing', pattern: 'A', pricing: { kind: 'rate_x_sizing', baseCost: 22, sizingTerm: 'perimeterLf', sizingUnit: 'lf' } },
-    { id: 'gate', label: 'Gate / motor', pattern: 'C', pricing: { kind: 'amounts', amounts: ORPHAN_AMOUNTS.storageGate } },
-    { id: 'accessControl', label: 'Access control system', pattern: 'C', pricing: { kind: 'amounts', amounts: ORPHAN_AMOUNTS.storageAccess } },
-    { id: 'cameras', label: 'Cameras / security', pattern: 'A', pricing: { kind: 'rate_x_count', baseCost: 500, defaultCount: 8, countLabel: '# Cameras', countUnit: 'cameras' } },
-    { id: 'poleLights', label: 'Pole / area lighting', pattern: 'A', pricing: { kind: 'rate_x_count', baseCost: 2000, defaultCount: 4, countLabel: '# Poles', countUnit: 'poles' } },
-    { id: 'office', label: 'Office buildout', pattern: 'C', pricing: { kind: 'amounts', amounts: ORPHAN_AMOUNTS.storageOffice } },
-    { id: 'climateHallway', label: 'Climate hallway interior', pattern: 'A', pricing: { kind: 'rate_x_sizing', baseCost: 25, sizingTerm: 'climateHallwaySqFt', sizingUnit: 'sqft' } },
-    { id: 'hvac', label: 'HVAC / climate control', pattern: 'A', pricing: { kind: 'hvac_storage_formula', baseCost: 10, avgUnitSize: 100, hideWhen: { sizingTerm: 'climateUnits', equals: 0 } } },
-    { id: 'signage', label: 'Signage', pattern: 'C', pricing: { kind: 'amounts', amounts: ORPHAN_AMOUNTS.storageSignage } },
-    { id: 'siteWork', label: 'Site work / drainage', pattern: 'C', pricing: { kind: 'amounts', amounts: ORPHAN_AMOUNTS.storageSiteWork } },
-    { id: 'unitInterior', label: 'Unit interior repairs', pattern: 'A', pricing: { kind: 'rate_x_count', baseCost: 200, defaultCount: 'totalUnits', countLabel: '# Units', countUnit: 'units' } },
-    { id: 'exteriorPaint', label: 'Exterior paint / cladding', pattern: 'A', pricing: { kind: 'rate_x_sizing', baseCost: 3, sizingTerm: 'exteriorSqFt', sizingUnit: 'sqft' } },
+    { id: 'roof', label: 'Roof / membrane', pattern: 'A', pricing: { kind: 'rate_x_sizing', baseCost: S.roof.baseCost, sizingTerm: 'roofSqFt', sizingUnit: 'sqft' } },
+    { id: 'rollupDoors', label: 'Roll-up doors', pattern: 'A', pricing: { kind: 'rate_x_count', baseCost: S.rollupDoors.baseCost, defaultCount: 'totalUnits', countLabel: '# Doors', countUnit: 'doors' } },
+    { id: 'doorHardware', label: 'Door hardware', pattern: 'A', pricing: { kind: 'rate_x_count', baseCost: S.doorHardware.baseCost, defaultCount: 'totalUnits', countLabel: '# Doors', countUnit: 'doors' } },
+    { id: 'pavement', label: 'Pavement / drive aisles', pattern: 'A', pricing: { kind: 'rate_x_sizing', baseCost: S.pavement.baseCost, sizingTerm: 'driveAisleSqFt', sizingUnit: 'sqft' } },
+    { id: 'fencing', label: 'Perimeter fencing', pattern: 'A', pricing: { kind: 'rate_x_sizing', baseCost: S.fencing.baseCost, sizingTerm: 'perimeterLf', sizingUnit: 'lf' } },
+    { id: 'gate', label: 'Gate / motor', pattern: 'C', pricing: { kind: 'amounts', amounts: S.gate.amounts } },
+    { id: 'accessControl', label: 'Access control system', pattern: 'C', pricing: { kind: 'amounts', amounts: S.accessControl.amounts } },
+    { id: 'cameras', label: 'Cameras / security', pattern: 'A', pricing: { kind: 'rate_x_count', baseCost: S.cameras.baseCost, defaultCount: G.storageCameraDefaultCount, countLabel: '# Cameras', countUnit: 'cameras' } },
+    { id: 'poleLights', label: 'Pole / area lighting', pattern: 'A', pricing: { kind: 'rate_x_count', baseCost: S.poleLights.baseCost, defaultCount: G.storagePoleLightDefaultCount, countLabel: '# Poles', countUnit: 'poles' } },
+    { id: 'office', label: 'Office buildout', pattern: 'C', pricing: { kind: 'amounts', amounts: S.office.amounts } },
+    { id: 'climateHallway', label: 'Climate hallway interior', pattern: 'A', pricing: { kind: 'rate_x_sizing', baseCost: S.climateHallway.baseCost, sizingTerm: 'climateHallwaySqFt', sizingUnit: 'sqft' } },
+    { id: 'hvac', label: 'HVAC / climate control', pattern: 'A', pricing: { kind: 'hvac_storage_formula', baseCost: S.hvac.baseCost, avgUnitSize: G.storageHvacAvgUnitSize, hideWhen: { sizingTerm: 'climateUnits', equals: 0 } } },
+    { id: 'signage', label: 'Signage', pattern: 'C', pricing: { kind: 'amounts', amounts: S.signage.amounts } },
+    { id: 'siteWork', label: 'Site work / drainage', pattern: 'C', pricing: { kind: 'amounts', amounts: S.siteWork.amounts } },
+    { id: 'unitInterior', label: 'Unit interior repairs', pattern: 'A', pricing: { kind: 'rate_x_count', baseCost: S.unitInterior.baseCost, defaultCount: 'totalUnits', countLabel: '# Units', countUnit: 'units' } },
+    { id: 'exteriorPaint', label: 'Exterior paint / cladding', pattern: 'A', pricing: { kind: 'rate_x_sizing', baseCost: S.exteriorPaint.baseCost, sizingTerm: 'exteriorSqFt', sizingUnit: 'sqft' } },
     { id: 'holding', label: 'Holding costs', pattern: 'D', pricing: { kind: 'amounts', amounts: holdingAmounts } }
   ]
 }
 
-// ── COMMERCIAL systems — base costs are ORPHANS (2026 national averages) ──────
+// ── COMMERCIAL systems — BUILT FROM THE LIVE BIBLE (REHAB.commercial.systems) ─
 function buildCommercialSystems() {
-  const holdingAmounts = rehabStd().systems.holding.amounts
+  const R = rehabStd()
+  const S = R.commercial.systems
+  const holdingAmounts = R.systems.holding.amounts
   return [
-    { id: 'interior', label: 'Interior buildout / TI', pattern: 'A', pricing: { kind: 'rate_x_sizing', baseCost: 60, sizingTerm: 'buildingSqFt', sizingUnit: 'sqft', tierKeys: COSMETIC_TIER_KEYS } },
-    { id: 'roof', label: 'Roof', pattern: 'A', pricing: { kind: 'rate_x_sizing', baseCost: 12, sizingTerm: 'roofSqFt', sizingUnit: 'sqft' } },
-    { id: 'hvac', label: 'HVAC', pattern: 'A', pricing: { kind: 'rate_x_sizing', baseCost: 18, sizingTerm: 'buildingSqFt', sizingUnit: 'sqft' } },
-    { id: 'electrical', label: 'Electrical', pattern: 'A', pricing: { kind: 'rate_x_sizing', baseCost: 8, sizingTerm: 'buildingSqFt', sizingUnit: 'sqft' } },
-    { id: 'facade', label: 'Facade / exterior', pattern: 'A', pricing: { kind: 'rate_x_sizing', baseCost: 15, sizingTerm: 'buildingSqFt', sizingUnit: 'sqft' } },
-    { id: 'parking', label: 'Parking lot', pattern: 'C', pricing: { kind: 'amounts', amounts: ORPHAN_AMOUNTS.commParking } },
-    { id: 'plumbing', label: 'Plumbing', pattern: 'C', pricing: { kind: 'amounts', amounts: ORPHAN_AMOUNTS.commPlumbing } },
-    { id: 'storefront', label: 'Storefront / glazing', pattern: 'C', pricing: { kind: 'amounts', amounts: ORPHAN_AMOUNTS.commStorefront } },
-    { id: 'signage', label: 'Signage', pattern: 'C', pricing: { kind: 'amounts', amounts: ORPHAN_AMOUNTS.commSignage } },
-    { id: 'siteWork', label: 'Site work / drainage', pattern: 'C', pricing: { kind: 'amounts', amounts: ORPHAN_AMOUNTS.commSiteWork } },
+    { id: 'interior', label: 'Interior buildout / TI', pattern: 'A', pricing: { kind: 'rate_x_sizing', baseCost: S.interior.baseCost, sizingTerm: 'buildingSqFt', sizingUnit: 'sqft', tierKeys: COSMETIC_TIER_KEYS } },
+    { id: 'roof', label: 'Roof', pattern: 'A', pricing: { kind: 'rate_x_sizing', baseCost: S.roof.baseCost, sizingTerm: 'roofSqFt', sizingUnit: 'sqft' } },
+    { id: 'hvac', label: 'HVAC', pattern: 'A', pricing: { kind: 'rate_x_sizing', baseCost: S.hvac.baseCost, sizingTerm: 'buildingSqFt', sizingUnit: 'sqft' } },
+    { id: 'electrical', label: 'Electrical', pattern: 'A', pricing: { kind: 'rate_x_sizing', baseCost: S.electrical.baseCost, sizingTerm: 'buildingSqFt', sizingUnit: 'sqft' } },
+    { id: 'facade', label: 'Facade / exterior', pattern: 'A', pricing: { kind: 'rate_x_sizing', baseCost: S.facade.baseCost, sizingTerm: 'buildingSqFt', sizingUnit: 'sqft' } },
+    { id: 'parking', label: 'Parking lot', pattern: 'C', pricing: { kind: 'amounts', amounts: S.parking.amounts } },
+    { id: 'plumbing', label: 'Plumbing', pattern: 'C', pricing: { kind: 'amounts', amounts: S.plumbing.amounts } },
+    { id: 'storefront', label: 'Storefront / glazing', pattern: 'C', pricing: { kind: 'amounts', amounts: S.storefront.amounts } },
+    { id: 'signage', label: 'Signage', pattern: 'C', pricing: { kind: 'amounts', amounts: S.signage.amounts } },
+    { id: 'siteWork', label: 'Site work / drainage', pattern: 'C', pricing: { kind: 'amounts', amounts: S.siteWork.amounts } },
     { id: 'holding', label: 'Holding costs', pattern: 'D', pricing: { kind: 'amounts', amounts: holdingAmounts } }
   ]
 }
@@ -215,8 +207,8 @@ export function toBenchmarkTier(condition) {
 // source is never ambiguous.
 export const RATE_SOURCE = {
   residential: 'Live Bible — REHAB.systems (line item) + REHAB.nationalPsf (national $/SF)',
-  storage: 'Live Bible tier multipliers; storage base costs are local orphans (no Bible home yet)',
-  commercial: 'Local commercial averages (no Bible commercial rehab section yet); tier multipliers live'
+  storage: 'Live Bible — REHAB.storage.systems + REHAB.tiers multipliers',
+  commercial: 'Live Bible — REHAB.commercial.systems + REHAB.tiers multipliers'
 }
 
 export function freshSystems(mode) {
